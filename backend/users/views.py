@@ -4,9 +4,10 @@ from rest_framework import generics
 from .models import User
 from .serializers import UserSerializer
 
-class UserRetreiveUpdateListView(
+class UserRetrieveUpdateListView(
     generics.RetrieveUpdateDestroyAPIView, 
-    generics.ListCreateAPIView):
+    generics.ListCreateAPIView
+):
     '''
     This is how the data should be sent to the server.
         {
