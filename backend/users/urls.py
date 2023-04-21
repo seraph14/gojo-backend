@@ -1,5 +1,9 @@
-from django.urls import path
-from .views import UserRetrieveUpdateListView
+from django.urls import path, include
+from users.views import UserRetrieveUpdateListView
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r"", UserRetrieveUpdateListView)
 urlpatterns = [
-    path('', UserRetrieveUpdateListView.as_view(), name='user_view' ),
+    path("",include(router.urls) , name="users"),
 ]
