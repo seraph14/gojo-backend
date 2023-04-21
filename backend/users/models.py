@@ -1,9 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from users.managers import UserManager
 
-class User(AbstractUser):
+class User(AbstractUser, PermissionsMixin):
     username = None
     email = models.EmailField(_("email address"), unique=True)
     first_name = models.CharField(_("first name"), max_length=150)
