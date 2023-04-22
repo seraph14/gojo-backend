@@ -1,10 +1,10 @@
-from django.shortcuts import render
 from rest_framework import generics, viewsets, status 
 from rest_framework.response import Response 
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action
 from users.models import User
 from users.serializers import UserSerializer
-from rest_framework.decorators import action
+from users.permissions import *
 
 # NOTE: when trying to login you need to use this format
 '''
