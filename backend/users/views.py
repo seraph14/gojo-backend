@@ -1,6 +1,7 @@
 from django.shortcuts import render
+from rest_framework import generics, viewsets, status 
+from rest_framework.response import Response 
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework import generics, viewsets, status
 from users.models import User
 from users.serializers import UserSerializer
 from rest_framework.decorators import action
@@ -31,7 +32,7 @@ class UserRetrieveUpdateListView(
     permission_classes = (AllowAny,)
     lookup_field = 'pk'
 
-    @action(detail=False, methods=["POST"], name="revoke_auth_token")
+    @action(detail=False, methods=["POST"], name="revoke_auth_token", permission_classes=[IsAuthenticated])
     def logout(self, request, *args, **kwargs):
         request.user.auth_token.delete()
         return Response({ 'message' : 'User Logged out successfully' }, status=status.HTTP_200_OK)
