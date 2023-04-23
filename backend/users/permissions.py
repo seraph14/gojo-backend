@@ -25,4 +25,13 @@ class IsFinancialManager(permissions.BasePermission):
     def has_permission(self, request, view):
         role = request.user.role
         return role == UserTypes.FINANCIAL_MANAGER
-        
+
+class IsManager(permissions.BasePermission):
+    def has_permission(self, request, view):
+        role = request.user.role
+        return role >= UserTypes.LISTING_MANAGER
+
+class CanEditPropertyDetail(permissions.BasePermission):
+    def has_permission(self, request, view):
+        role = request.user.role
+        return role in [UserTypes.LANDLORD, UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]

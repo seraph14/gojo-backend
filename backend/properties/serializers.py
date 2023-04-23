@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Property
-
+from properties.models import Property
+from users.serializers import UserSerializer
+from users.models import User
 class PropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
