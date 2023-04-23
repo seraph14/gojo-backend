@@ -37,13 +37,13 @@ jobs:
         cd ./backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    - name: Run Tests
+      run: |
+        cd ./backend
+        python manage.py test
       env:
         DATABASE_NAME: postgres
         DATABASE_USER: postgres
         DATABASE_PASSWORD: postgres
         DATABASE_PORT: 5432
-        
-    - name: Run Tests
-      run: |
-        cd ./backend
-        python manage.py test
