@@ -19,3 +19,6 @@ class Property(models.Model):
         models.CharField(max_length=200),
         default=list
     )
+
+    class Meta:
+        ordering = ['-id']

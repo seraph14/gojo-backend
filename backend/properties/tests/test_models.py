@@ -27,7 +27,7 @@ class UserModelTestCase(TestCase):
 
         self.property = Property.objects.create(
             owner=self.land_lord,
-            availability=[datetime().utcnow()],
+            availability=["2020-10-10T12:00:00Z"],
             category=[1, 2, 3],
             latitude=38.8941,
             longitude=-77.0364,
@@ -37,13 +37,13 @@ class UserModelTestCase(TestCase):
     def test_property_creation(self):
         property = Property.objects.create(
             owner=self.land_lord,
-            availability=[datetime().utcnow()],
+            availability=["2020-10-10T12:00:00Z"],
             category=[1, 2, 3],
             latitude=38.8951,
             longitude=-77.0364,
             facilities=["Bathroom"]
         )
-        self.assertIsInstance(property, Property())
+        self.assertIsInstance(property, Property)
         self.assertEqual(property.owner.id, self.land_lord.id)
 
     def test_should_query_all_properties(self):

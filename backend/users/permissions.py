@@ -35,3 +35,8 @@ class CanEditPropertyDetail(permissions.BasePermission):
     def has_permission(self, request, view):
         role = request.user.role
         return role in [UserTypes.LANDLORD, UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]
+
+class CanCreateProperty(permissions.BasePermission):
+    def has_permission(self, request, view):
+        role = request.user.role
+        return role in [UserTypes.LANDLORD, UserTypes.LISTING_MANAGER]
