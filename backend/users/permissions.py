@@ -40,3 +40,8 @@ class CanCreateProperty(permissions.BasePermission):
     def has_permission(self, request, view):
         role = request.user.role
         return role in [UserTypes.LANDLORD, UserTypes.LISTING_MANAGER]
+
+class IsLandLordOrTenant(permissions.BasePermission):
+    def has_permission(self, request, view):
+        role = request.user.role
+        return role in [UserTypes.LANDLORD, UserTypes.TENANT]
