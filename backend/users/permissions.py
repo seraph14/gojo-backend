@@ -45,3 +45,8 @@ class IsLandLordOrTenant(permissions.BasePermission):
     def has_permission(self, request, view):
         role = request.user.role
         return role in [UserTypes.LANDLORD, UserTypes.TENANT]
+
+class CanStartTransaction(permissions.BasePermission):
+    def has_permission(self, request, view):
+        role = request.user.role
+        return role != UserTypes.LISTING_MANAGER
