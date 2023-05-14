@@ -37,11 +37,11 @@ class UserRetrieveUpdateListView(
     def get_permissions(self):
         if self.action == "create" and \
                 int(self.request.data.get("role", UserTypes.TENANT)) in [UserTypes.TENANT, UserTypes.LANDLORD]:
-            return [AllowAny(),]       
-        user_id = self.kwargs.get("pk", None)
-        if (self.action == "partial_update" or self.action == "update") and self.request.user.role != UserTypes.GENERAL_MANAGER and int(user_id) == self.request.user.id:
-            return [IsAuthenticated(), ]
-        return [IsAuthenticated(),IsGeneralManager()]
+            return [AllowAny(),]
+        if self.action == "create" and \
+                int(self.request.data.get("role", None)) in [UserTypes.LISTING_MANAGER, UserTypes.FINANCIAL_MANAGER]:
+            return [IsAuthenticated(), IsGeneralManager()]
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=["POST"], name="revoke_auth_token", permission_classes=[IsAuthenticated])
     def logout(self, request, *args, **kwargs):

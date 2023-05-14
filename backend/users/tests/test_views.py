@@ -98,18 +98,18 @@ class UserViewsTest(APITestCase):
         response = self.client.get(f"/api/v1/users/{id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_all_users_should_fail_for_none_g_managers(self):
+    def test_get_all_users_should_pass_for_none_g_managers(self):
         self.client.credentials(
             HTTP_AUTHORIZATION='Token ' + self.token_landlord.key)
         response = self.client.get("/api/v1/users/")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_one_user_should_for_none_g_managers(self):
         id = self.user_1.id
         self.client.credentials(
             HTTP_AUTHORIZATION='Token ' + self.token_landlord.key)
         response = self.client.get(f"/api/v1/users/{id}/")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_should_partial_update_user_detail(self):
         id = self.user_2.id
