@@ -14,6 +14,7 @@ class User(AbstractUser, PermissionsMixin):
     identification = models.ImageField(upload_to="id_img/", null=True)
     phone = models.CharField(_('phone number'), null=True, max_length=10)
     is_verified = models.BooleanField(_("is verified"),default=False)
+    phone_verified = models.BooleanField(_("is phone number verified"), default=False)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name",]
 
