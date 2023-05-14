@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.conf.urls.static import static
+from django.conf import settings
 
 @api_view()
 def hello_world(request):
@@ -29,4 +31,4 @@ urlpatterns = [
     path("api/v1/applications/", include('applications.urls')),
     path("api/v1/transactions/", include('transactions.urls')),
     path("api/v1/reviews/", include('reviews.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

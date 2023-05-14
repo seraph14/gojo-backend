@@ -10,6 +10,9 @@ class User(AbstractUser, PermissionsMixin):
     first_name = models.CharField(_("first name"), max_length=150)
     last_name = models.CharField(_("last name"), max_length=150)
     role = models.IntegerField(choices=UserTypes.choices, default=UserTypes.TENANT)
+    avatar = models.ImageField(upload_to="avatar/", null=True)
+    phone = models.CharField(_('phone number'), null=True, max_length=10)
+    is_verified = models.BooleanField(_("is verified"),default=False)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name",]
 
