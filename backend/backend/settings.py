@@ -151,5 +151,10 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MEDIA_ROOT = 'uploads/'
-STATIC_ROOT = 'static/'
+
+if env('SERVER_ENV') == "dev":
+    STATIC_ROOT = 'static/'
+else:
+    STATIC_ROOT = '/home/natnaelabaycom/api.natnaelabay.com/static'
+
 MEDIA_URL = ''
