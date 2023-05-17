@@ -42,14 +42,6 @@ class Migration(migrations.Migration):
                 ("latitude", models.DecimalField(decimal_places=6, max_digits=9)),
                 ("longitude", models.DecimalField(decimal_places=6, max_digits=9)),
                 (
-                    "facilities",
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.CharField(max_length=200),
-                        default=list,
-                        size=None,
-                    ),
-                ),
-                (
                     "owner",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
