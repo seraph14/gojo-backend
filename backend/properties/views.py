@@ -10,7 +10,7 @@ class PropertyView(
     viewsets.ModelViewSet
 ):
     serializer_class = PropertySerializer
-    queryset = Property.objects.all()
+    queryset = Property.objects.all().prefetch_related('images')
     lookup_field = "pk"
 
     def get_permissions(self):

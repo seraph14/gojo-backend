@@ -20,12 +20,28 @@ from rest_framework.response import Response
 from django.conf.urls.static import static
 from django.conf import settings
 
-@api_view()
-def hello_world(request):
-    return Response({"message": "Hello, world!"})
+from rest_framework import routers
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+router = routers.DefaultRouter()
+
+# Register your DRF viewsets with the router
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="GOJO API Docs",
+        default_version='v1',
+    ),
+    public=True,
+    permission_classes=[],
+)
+
+
 
 urlpatterns = [
-    path("", hello_world, name="testing"),
+    path("", schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path("redoc/", schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("api/v1/users/", include('users.urls')),
     path("api/v1/properties/", include('properties.urls')),
     path("api/v1/applications/", include('applications.urls')),
