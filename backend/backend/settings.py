@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "reviews",
     "applications",
     "transactions",
+    "commands"
 ]
 AUTH_USER_MODEL = "users.User"
 

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import IntegrityError
 from users.models import User
-from users.permissions import UserTypes
+from users.utilities import UserTypes
 
 
 class UserModelTestCase(TestCase):
