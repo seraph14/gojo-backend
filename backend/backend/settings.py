@@ -51,7 +51,9 @@ INSTALLED_APPS = [
     "reviews",
     "applications",
     "transactions",
-    "commands"
+    "commands",
+    "chat",
+    "channels",
 ]
 AUTH_USER_MODEL = "users.User"
 
@@ -94,6 +96,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "backend.wsgi.application"
+# This registers our asgi application -> we are using it for channels
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # Database
@@ -160,3 +164,10 @@ else:
     STATIC_ROOT = '/home/natnaelabaycom/api.natnaelabay.com/static'
 
 MEDIA_URL = ''
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
