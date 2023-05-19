@@ -24,7 +24,7 @@ class Command(BaseCommand):
             role=UserTypes.TENANT,
             is_active=True,
             phone="0955211643",
-            phone_verified=True,
+            # phone_verified=True,
         )
         self.landlord = User.objects.create(
             email="test@landlord.com",
@@ -34,7 +34,7 @@ class Command(BaseCommand):
             role=UserTypes.LANDLORD,
             is_active=True,
             phone="0955211643",
-            phone_verified=True
+            # phone_verified=True
         )
 
         self.general = User.objects.create(
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             role=UserTypes.GENERAL_MANAGER,
             is_active=True,
             phone="0955211643",
-            phone_verified=True,
+            # phone_verified=True,
         )
 
         self.finance = User.objects.create(
@@ -56,7 +56,7 @@ class Command(BaseCommand):
             role=UserTypes.FINANCIAL_MANAGER,
             is_active=True,
             phone="0955211643",
-            phone_verified=True,
+            # phone_verified=True,
         )
 
         self.listing = User.objects.create(
@@ -67,7 +67,7 @@ class Command(BaseCommand):
             role=UserTypes.LISTING_MANAGER,
             is_active=True,
             phone="0955211643",
-            phone_verified=True,
+            # phone_verified=True,
         )
         # self.user_attach_images()
         self.seed_properties()
