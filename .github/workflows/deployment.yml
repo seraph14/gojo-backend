@@ -2,7 +2,7 @@ name: Deploy API
 on:
   push:
     branches:
-      - master
+      - gojo
 jobs:
   web-deploy:
     name: 🎉 Deploy
