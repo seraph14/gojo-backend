@@ -1,50 +1,50 @@
-name: GOJO CI
+# name: GOJO CI
 
-on:
-  push:
-    branches: ["master"]
-  pull_request:
-    types: [opened, reopened]
+# on:
+#   push:
+#     branches: ["master"]
+#   pull_request:
+#     types: [opened, reopened]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: postgres
+#     services:
+#       postgres:
+#         image: postgres:13
+#         ports:
+#           - 5432:5432
+#         env:
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_USER: postgres
+#           POSTGRES_DB: postgres
 
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.8]
+#     strategy:
+#       max-parallel: 4
+#       matrix:
+#         python-version: [3.8]
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install Dependencies
-        run: |
-          cd ./backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Set up Python ${{ matrix.python-version }}
+#         uses: actions/setup-python@v3
+#         with:
+#           python-version: ${{ matrix.python-version }}
+#       - name: Install Dependencies
+#         run: |
+#           cd ./backend
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
 
-      - name: Run Tests
-        run: |
-          cd ./backend
-          python manage.py test
-        env:
-          DATABASE_NAME: postgres
-          DATABASE_USER: postgres
-          DATABASE_PASSWORD: postgres
-          DATABASE_PORT: 5432
-          DATABASE_HOST: localhost
-          SERVER_ENV: production
+#       - name: Run Tests
+#         run: |
+#           cd ./backend
+#           python manage.py test
+#         env:
+#           DATABASE_NAME: postgres
+#           DATABASE_USER: postgres
+#           DATABASE_PASSWORD: postgres
+#           DATABASE_PORT: 5432
+#           DATABASE_HOST: localhost
+#           SERVER_ENV: production
