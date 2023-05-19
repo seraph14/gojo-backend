@@ -23,7 +23,7 @@ class Command(BaseCommand):
             last_name="Natnael",
             role=UserTypes.TENANT,
             is_active=True,
-            phone="0955211643",
+            phone="0955211655",
             # phone_verified=True,
         )
         self.landlord = User.objects.create(
@@ -33,7 +33,7 @@ class Command(BaseCommand):
             last_name="Kidus",
             role=UserTypes.LANDLORD,
             is_active=True,
-            phone="0955211643",
+            phone="0991150504",
             # phone_verified=True
         )
 
@@ -41,10 +41,10 @@ class Command(BaseCommand):
             email="test@general.com",
             password="123123",
             first_name="GeneralManager",
-            last_name="Surafel",
+            last_name="Lingerew",
             role=UserTypes.GENERAL_MANAGER,
             is_active=True,
-            phone="0955211643",
+            phone="0943447499",
             # phone_verified=True,
         )
 
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             last_name="Nabek",
             role=UserTypes.FINANCIAL_MANAGER,
             is_active=True,
-            phone="0955211643",
+            phone="0915207146",
             # phone_verified=True,
         )
 
@@ -66,7 +66,7 @@ class Command(BaseCommand):
             last_name="Lingerew",
             role=UserTypes.LISTING_MANAGER,
             is_active=True,
-            phone="0955211643",
+            phone="0918704962",
             # phone_verified=True,
         )
         # self.user_attach_images()
