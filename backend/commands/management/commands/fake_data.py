@@ -16,7 +16,7 @@ from properties.models import Property, PropertyImage
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        self.tenant = User.objects.create(
+        self.tenant = User.objects.create_user(
             email="test@tenant.com",
             password="123123",
             first_name="Tenant",
@@ -26,7 +26,7 @@ class Command(BaseCommand):
             phone="0955211655",
             # phone_verified=True,
         )
-        self.landlord = User.objects.create(
+        self.landlord = User.objects.create_user(
             email="test@landlord.com",
             password="123123",
             first_name="LandLord",
@@ -37,7 +37,7 @@ class Command(BaseCommand):
             # phone_verified=True
         )
 
-        self.general = User.objects.create(
+        self.general = User.objects.create_user(
             email="test@general.com",
             password="123123",
             first_name="GeneralManager",
@@ -48,7 +48,7 @@ class Command(BaseCommand):
             # phone_verified=True,
         )
 
-        self.finance = User.objects.create(
+        self.finance = User.objects.create_user(
             email="test@finance.com",
             password="123123",
             first_name="Finance",
@@ -59,7 +59,7 @@ class Command(BaseCommand):
             # phone_verified=True,
         )
 
-        self.listing = User.objects.create(
+        self.listing = User.objects.create_user(
             email="test@listing.com",
             password="123123",
             first_name="Listing",
