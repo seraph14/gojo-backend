@@ -6,16 +6,16 @@ from users.utilities import UserTypes
 
 class User(AbstractUser, PermissionsMixin):
     username = None
-    email = models.EmailField(_("email address"), unique=True)
+    # email = models.EmailField(_("email address"), unique=True)
     first_name = models.CharField(_("first name"), max_length=150)
     last_name = models.CharField(_("last name"), max_length=150)
     role = models.IntegerField(choices=UserTypes.choices, default=UserTypes.TENANT)
     avatar = models.ImageField(upload_to="avatar/", null=True)
     identification = models.ImageField(upload_to="id_img/", null=True)
-    phone = models.CharField(_('phone number'), null=True, max_length=10)
+    phone = models.CharField(_('phone number'), unique=True, max_length=10)
     is_verified = models.BooleanField(_("is verified"),default=False)
-    phone_verified = models.BooleanField(_("is phone number verified"), default=False)
-    USERNAME_FIELD = "email"
+    # phone_verified = models.BooleanField(_("is phone number verified"), default=False)
+    USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = ["first_name", "last_name",]
 
     objects = UserManager()
