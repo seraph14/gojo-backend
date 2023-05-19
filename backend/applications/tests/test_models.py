@@ -17,6 +17,7 @@ class ApplicationModelTestCase(TestCase):
         self.tenant = User.objects.create(
             email=self.tenant_email,
             password="123123",
+            phone="0955211655",
             first_name="Tenant",
             last_name="Natnael",
             role=UserTypes.TENANT
@@ -24,6 +25,7 @@ class ApplicationModelTestCase(TestCase):
 
         self.landlord = User.objects.create(
             email=self.landlord_email,
+            phone="0955211651",
             password="123123",
             first_name="LandLord",
             last_name="Kidus",

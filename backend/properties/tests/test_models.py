@@ -13,6 +13,7 @@ class UserModelTestCase(TestCase):
             email="test@llord.com",
             password="123123",
             first_name="LandLord",
+            phone="0955211615",
             last_name="Natnael",
             role=UserTypes.LANDLORD
         )
@@ -22,6 +23,7 @@ class UserModelTestCase(TestCase):
             password="123123",
             first_name="general",
             last_name="Kidus",
+            phone="0955224652",
             role=UserTypes.GENERAL_MANAGER
         )
 
