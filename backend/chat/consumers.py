@@ -8,6 +8,8 @@ from chat.models import Thread, Message
 
 
 class ChatConsumer(AsyncConsumer):
+    MAX_ACTIVE_TASKS = 40
+
     async def websocket_connect(self, event):
         print("entering=================")
         self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
@@ -15,9 +17,9 @@ class ChatConsumer(AsyncConsumer):
         
         self.thread = await self.get_thread(self.sender_user_id, self.receiver_user_id)
         self.room_id = str(self.thread.id)
-
+        self.thread_channel = f"Thread_{self.thread.id}"
         await self.channel_layer.group_add(
-            self.room_id, 
+            self.thread_channel, 
             self.channel_name
         )
         await self.send({
@@ -36,24 +38,12 @@ class ChatConsumer(AsyncConsumer):
         await self.create_chat_message(self.sender_user_id, message_data['message'])
         final_message_data = json.dumps(message_data)
         await self.channel_layer.group_send(
-            self.room_id,
+            self.thread_channel,
             {
                 'type': 'chat_message',
                 'message': final_message_data
             }
         )
-        pass
-
-    async def broadcast_message(self, event):
-        await self.send({
-            "type": "websocket.send",
-            "text": json.dumps({'msg': "Loading data please wait...", 'user': 'admin'})
-        })
-        await asyncio.sleep(15) ### chatbot? API -> another service --> response --> send
-        await self.send({
-            "type": "websocket.send",
-            "text": event['message']
-        })
 
     async def chat_message(self, event):
         await self.send({
@@ -63,7 +53,7 @@ class ChatConsumer(AsyncConsumer):
 
     async def websocket_disconnect(self, event):
         await self.channel_layer.group_discard(
-            self.room_id, 
+            self.thread_channel, 
             self.channel_name
         )
 
