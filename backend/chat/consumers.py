@@ -9,11 +9,12 @@ from chat.models import Thread, Message
 
 class ChatConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
-        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender'])
-        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver'])
+        print("entering=================")
+        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
+        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
         
         self.thread = await self.get_thread(self.sender_user_id, self.receiver_user_id)
-        self.room_id = self.thread.id
+        self.room_id = str(self.thread.id)
 
         await self.channel_layer.group_add(
             self.room_id, 
@@ -27,21 +28,23 @@ class ChatConsumer(AsyncConsumer):
 
 
     async def websocket_receive(self, event): # websocket.receive
-        message_data = json.loads(event['message'])
-        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender'])
-        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver'])
+        # message_data = json.loads(event['message'])
+        # message_data = ({'message' : "testing message"})
+        # self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
+        # self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
        
 
-        message_data["sender"] = self.sender_user_id
-        await self.create_chat_message(self.sender_user_id, message_data['msg'])
-        final_message_data = json.dumps(message_data)
-        await self.channel_layer.group_send(
-            self.room_id,
-            {
-                'type': 'chat_message',
-                'message': final_message_data
-            }
-        )
+        # message_data["sender"] = self.sender_user_id
+        # await self.create_chat_message(self.sender_user_id, message_data['msg'])
+        # final_message_data = json.dumps(message_data)
+        # await self.channel_layer.group_send(
+        #     self.room_id,
+        #     {
+        #         'type': 'chat_message',
+        #         'message': final_message_data
+        #     }
+        # )
+        pass
 
     async def broadcast_message(self, event):
         await self.send({
@@ -80,7 +83,7 @@ class ChatConsumer(AsyncConsumer):
             return Thread.objects.get(user_2=s_user_id,user_1=r_user_id)
         except Thread.DoesNotExist:
             pass
-        return Thread.objects.create(user_1=s_user_id, user_2=r_user_id)
+        return Thread.objects.create(user_1=User.objects.get(id=s_user_id), user_2=User.objects.get(id=r_user_id))
 
 
     @database_sync_to_async
