@@ -13,7 +13,7 @@ class ChatConsumer(AsyncConsumer):
         self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver'])
         
         self.thread = await self.get_thread(self.sender_user_id, self.receiver_user_id)
-        self.room_id = thread_obj.id
+        self.room_id = self.thread.id
 
         await self.channel_layer.group_add(
             self.room_id, 
@@ -22,6 +22,8 @@ class ChatConsumer(AsyncConsumer):
         await self.send({
             "type": "websocket.accept"
         })
+
+        print("received============")
 
 
     async def websocket_receive(self, event): # websocket.receive
