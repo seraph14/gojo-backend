@@ -19,7 +19,7 @@ class ChatConsumer(AsyncConsumer):
         self.room_id = str(self.thread.id)
         self.thread_channel = f"Thread_{self.thread.id}"
         await self.channel_layer.group_add(
-            self.thread_channel, 
+            self.thread_channel+str(self.sender_user_id), 
             self.channel_name
         )
         await self.send({
@@ -38,7 +38,7 @@ class ChatConsumer(AsyncConsumer):
         await self.create_chat_message(self.sender_user_id, message_data['message'])
         final_message_data = json.dumps(message_data)
         await self.channel_layer.group_send(
-            self.thread_channel,
+            self.thread_channel+str(self.receiver_user_id),
             {
                 'type': 'chat_message',
                 'message': final_message_data
@@ -53,7 +53,7 @@ class ChatConsumer(AsyncConsumer):
 
     async def websocket_disconnect(self, event):
         await self.channel_layer.group_discard(
-            self.thread_channel, 
+            self.thread_channel+str(self.sender_user_id), 
             self.channel_name
         )
 
