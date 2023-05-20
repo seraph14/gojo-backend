@@ -24,26 +24,24 @@ class ChatConsumer(AsyncConsumer):
             "type": "websocket.accept"
         })
 
-        print("received============")
+        print("received============ ")
 
 
     async def websocket_receive(self, event): # websocket.receive
-        # message_data = json.loads(event['message'])
-        # message_data = ({'message' : "testing message"})
-        # self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
-        # self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
-       
-
-        # message_data["sender"] = self.sender_user_id
-        # await self.create_chat_message(self.sender_user_id, message_data['msg'])
-        # final_message_data = json.dumps(message_data)
-        # await self.channel_layer.group_send(
-        #     self.room_id,
-        #     {
-        #         'type': 'chat_message',
-        #         'message': final_message_data
-        #     }
-        # )
+        data =  json.loads(event["text"])
+        message_data ={"message" : (data['message'])}
+        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
+        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
+        message_data["sender"] = self.sender_user_id
+        await self.create_chat_message(self.sender_user_id, message_data['message'])
+        final_message_data = json.dumps(message_data)
+        await self.channel_layer.group_send(
+            self.room_id,
+            {
+                'type': 'chat_message',
+                'message': final_message_data
+            }
+        )
         pass
 
     async def broadcast_message(self, event):
@@ -76,11 +74,11 @@ class ChatConsumer(AsyncConsumer):
     @database_sync_to_async
     def get_thread(self, s_user_id, r_user_id):
         try:
-            return Thread.objects.get(user_1 = s_user_id, user_2=r_user_id)
+            return Thread.objects.get(user_1__id=s_user_id, user_2__id=r_user_id)
         except Thread.DoesNotExist:
             pass
         try:
-            return Thread.objects.get(user_2=s_user_id,user_1=r_user_id)
+            return Thread.objects.get(user_2__id=s_user_id,user_1__id=r_user_id)
         except Thread.DoesNotExist:
             pass
         return Thread.objects.create(user_1=User.objects.get(id=s_user_id), user_2=User.objects.get(id=r_user_id))
