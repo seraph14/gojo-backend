@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <script>
+        console.log("loaded")
+        let ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/2/1/")
+
+        ws.onmessage = (e) => {
+            console.log("received!!")
+            console.log(e.data)
+            console.log("received!!")
+        }
+        ws.onopen = () => {
+            // ws.send("This message is sent!")
+            ws.send(JSON.stringify({
+                "message" : "this is a test message"
+            }))
+        }
+
+        console.log("finished")
+        </script>
+    
+</body>
+</html>
