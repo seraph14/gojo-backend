@@ -1,63 +1,87 @@
-from channels.generic.websocket import WebsocketConsumer
+import asyncio
 import json
+from channels.consumer import SyncConsumer, AsyncConsumer
+from channels.db import database_sync_to_async
+from users.models import User
+
+from chat.models import Thread, Message
 
 
+class ChatConsumer(AsyncConsumer):
+    async def websocket_connect(self, event):
+        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender'])
+        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver'])
+        
+        self.thread = await self.get_thread(self.sender_user_id, self.receiver_user_id)
+        self.room_id = thread_obj.id
 
-'''
-=> all Chat
-chat/
-
-chat/thread_id/
-
-chat/thread_id/:receiver { message: data }
-
-'''
-
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
-        self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = f'chat_{self.room_name}'
-
-        # Join room group
-        self.channel_layer.group_add(
-            self.room_group_name,
+        await self.channel_layer.group_add(
+            self.room_id, 
             self.channel_name
         )
+        await self.send({
+            "type": "websocket.accept"
+        })
 
-        self.accept()
 
-    def disconnect(self, close_code):
-        # Leave room group
-        self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+    async def websocket_receive(self, event): # websocket.receive
+        message_data = json.loads(event['message'])
+        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender'])
+        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver'])
+       
 
-    def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        sender = text_data_json['sender']
-        recipient = text_data_json['recipient']
-
-        # Send message to recipient
-        self.channel_layer.group_send(
-            f'chat_{recipient}',
+        message_data["sender"] = self.sender_user_id
+        await self.create_chat_message(self.sender_user_id, message_data['msg'])
+        final_message_data = json.dumps(message_data)
+        await self.channel_layer.group_send(
+            self.room_id,
             {
                 'type': 'chat_message',
-                'message': message,
-                'sender': sender,
-                'recipient': recipient
+                'message': final_message_data
             }
         )
 
-    def chat_message(self, event):
-        message = event['message']
-        sender = event['sender']
-        recipient = event['recipient']
+    async def broadcast_message(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": json.dumps({'msg': "Loading data please wait...", 'user': 'admin'})
+        })
+        await asyncio.sleep(15) ### chatbot? API -> another service --> response --> send
+        await self.send({
+            "type": "websocket.send",
+            "text": event['message']
+        })
 
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender,
-            'recipient': recipient
-        }))
+    async def chat_message(self, event):
+        await self.send({
+            "type": "websocket.send",
+            "text": event['message']
+        })
+
+    async def websocket_disconnect(self, event):
+        await self.channel_layer.group_discard(
+            self.room_id, 
+            self.channel_name
+        )
+
+    @database_sync_to_async
+    def get_name(self):
+        return User.objects.all()[0].username
+
+    @database_sync_to_async
+    def get_thread(self, s_user_id, r_user_id):
+        try:
+            return Thread.objects.get(user_1 = s_user_id, user_2=r_user_id)
+        except Thread.DoesNotExist:
+            pass
+        try:
+            return Thread.objects.get(user_2=s_user_id,user_1=r_user_id)
+        except Thread.DoesNotExist:
+            pass
+        return Thread.objects.create(user_1=s_user_id, user_2=r_user_id)
+
+
+    @database_sync_to_async
+    def create_chat_message(self, sender_id, message):
+        thread = self.thread
+        return Message.objects.create(thread=thread, sender=User.objects.get(id=sender_id), content=message)
