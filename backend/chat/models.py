@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import User
 
+
 class Thread(models.Model):
     user_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_as_user_1")
     user_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_as_user_2")
@@ -14,4 +15,3 @@ class Message(models.Model):
 
     def __str__(self):
         return f'Message {self.id}'
-
