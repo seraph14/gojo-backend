@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "applications",
     "transactions",
     "commands",
+    "chapa",
     "chat",
     "channels",
 ]
