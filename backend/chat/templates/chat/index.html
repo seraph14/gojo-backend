@@ -1,31 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
-<body>
-
+  </head>
+  <body>
+    <button id="nati">make payment</button>
     <script>
-        console.log("loaded")
-        let ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/2/1/")
+      // console.log("loaded")
+      // let ws = new WebSocket("ws://127.0.0.1:8000/ws/chat/2/1/")
 
-        ws.onmessage = (e) => {
-            console.log("received!!")
-            console.log(e.data)
-            console.log("received!!")
-        }
-        ws.onopen = () => {
-            // ws.send("This message is sent!")
-            ws.send(JSON.stringify({
-                "message" : "this is a test message"
-            }))
-        }
+      // ws.onmessage = (e) => {
+      //     console.log("received!!")
+      //     console.log(e.data)
+      //     console.log("received!!")
+      // }
+      // ws.onopen = () => {
+      //     // ws.send("This message is sent!")
+      //     ws.send(JSON.stringify({
+      //         "message" : "this is a test message 2 - 1"
+      //     }))
+      // }
+      // ws.onclose = () => {
+      //     console.log("connection closed 1 - 2");
+      // }
+      // console.log("finished")
+      document.getElementById("nati").addEventListener("click", (e) => {
+        console.log("clicking");
+        const myHeaders = new Headers();
+        myHeaders.append(
+          "Authorization",
+          "Bearer CHASECK_TEST-uRIINXSd8pr5FCjR93qKqQt6gp9LFBG1"
+        );
+        myHeaders.append("Content-Type", "application/json");
 
-        console.log("finished")
-        </script>
-    
-</body>
+        const raw = JSON.stringify({
+          amount: "100",
+          currency: "ETB",
+          email: "se.natnael.abay@gmail.com",
+          first_name: "Natnael",
+          last_name: "Abay",
+          phone_number: "0955211643",
+          tx_ref: "chewatatest-6669",
+          // callback_url:
+          //   "https://webhook.site/077164d6-29cb-40df-ba29-8a00e59a7e60",
+          return_url: "https://www.google.com/",
+        //   "customization[title]": "Payment for my favourite merchant",
+        //   "customization[description]": "I love online payments",
+        });
+
+        const requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow",
+        };
+
+        fetch("https://api.chapa.co/v1/transaction/initialize", requestOptions)
+          .then((response) => response.text())
+          .then((result) => console.log(result))
+          .catch((error) => console.log("error", error));
+      });
+    </script>
+  </body>
 </html>
