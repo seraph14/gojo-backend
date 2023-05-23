@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
 from users.models import User
@@ -51,6 +53,21 @@ class UserRetrieveUpdateListView(
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def logout(self, request, *args, **kwargs):
+def logout(request):
     request.user.auth_token.delete()
     return Response({'message': 'User Logged out successfully'}, status=status.HTTP_200_OK)
+
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+
+        token, created = Token.objects.get_or_create(user=user)
+        usr_data = UserSerializer(user).data
+        usr_data["token"] = token.key
+        return Response({
+            # 'token': token.key,
+            'user': usr_data 
+        }, status=status.HTTP_200_OK)
+
