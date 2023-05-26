@@ -38,7 +38,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Tests
-        # run: | cd ./backend python manage.py test
+        run: | 
+          cd ./backend python manage.py test
         env:
           DATABASE_NAME: postgres
           DATABASE_USER: postgres
