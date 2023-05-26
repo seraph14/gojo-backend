@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer
-from properties.models import Property, Category
+from rest_framework import status
+from rest_framework.response import Response
+from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer, FacilitySerializer
+from properties.models import Property, Category, Facility
 from users.permissions import IsLandlord, IsManager, CanEditPropertyDetail, CanCreateProperty
 
 
@@ -10,6 +12,13 @@ class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     lookup_field = "pk"
+    permission_classes = [IsManager]
+
+class FacilityView(viewsets.ModelViewSet):
+    serializer_class = FacilitySerializer
+    queryset = Facility.objects.all()
+    lookup_field = "pk"
+    permission_classes = [IsManager]
 
 class PropertyView(
     viewsets.ModelViewSet
@@ -39,12 +48,14 @@ class PropertyView(
         self.request._property_data = property_serializer.data
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)        
         if hasattr(self.request, '_property_data'):
-            response.data = self.request._property_data
+            data = self.request._property_data
             del self.request._property_data
-        return response
-        
+        return Response(data, status=status.HTTP_201_CREATED)
+
     def get_serializer_class(self):
         if self.request.method == "POST":
             return PropertyCreateSerializer

@@ -29,3 +29,7 @@ class User(AbstractUser, PermissionsMixin):
 
     class Meta:
         ordering = ['-id']
+
+class UserVerification(models.Model):
+    request_id = models.CharField(max_length=500)
+    user = models.ForeignKey(User, related_name='otp_status', on_delete=models.CASCADE)

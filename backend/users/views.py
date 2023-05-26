@@ -5,9 +5,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
-from users.models import User
+from users.models import User, UserVerification
 from users.serializers import UserSerializer
-from users.utilities import UserTypes
+from users.utilities import UserTypes, send_otp_to_phone, verify_otp
 from users.permissions import *
 
 # NOTE: when trying to login you need to use this format
@@ -36,6 +36,19 @@ class UserRetrieveUpdateListView(
     permission_classes = (AllowAny,)
     lookup_field = 'pk'
 
+    def create(self, request, *args,**kwargs):
+        # TODO: this needs to be refactored it is a bad designa
+        for key, value in request.data['user'].items():
+            request.data[key] = value
+
+        response = super().create(request, *args,**kwargs)
+        try:
+            request_id = send_otp_to_phone(request.data["phone"])
+            UserVerification.objects.create(request_id=request_id, user=response.data)
+        except:
+            print("===================otp sending failed=========================")
+        return response
+
     def get_permissions(self):
         if self.action == "create" and \
                 int(self.request.data.get("role", UserTypes.TENANT)) in [UserTypes.TENANT, UserTypes.LANDLORD]:
@@ -50,6 +63,24 @@ class UserRetrieveUpdateListView(
         serializer = self.get_serializer_class()
         user = get_object_or_404(User,id=self.request.user.id)
         return Response({ "user" : serializer(user).data})
+    
+    @action(detail=False, methods=["GET"], name="current_user")
+    def verify_otp(self, request):
+        user_ver = UserVerification.objects.get(user=request.user)
+        code = request.data["code"]
+        try:
+            verify_otp(user_ver.request_id, code)
+            # TODO: delete otp verification
+            return Response(status=status.HTTP_200_OK)
+        except:
+            print("============= otp verification failed ===============")
+            return Response({ "message": "Otp verification failed" }, status=status.HTTP_400_BAD_REQUEST)
+
+    # @action(detail=False, methods=["GET"], name="current_user")
+    # def resend_otp(self, request):
+    #     serializer = self.get_serializer_class()
+    #     user = get_object_or_404(User,id=self.request.user.id)
+    #     return Response({ "user" : serializer(user).data})
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -70,4 +101,3 @@ class CustomAuthToken(ObtainAuthToken):
             # 'token': token.key,
             'user': usr_data 
         }, status=status.HTTP_200_OK)
-
