@@ -38,7 +38,7 @@ class UserRetrieveUpdateListView(
 
     def create(self, request, *args,**kwargs):
         # TODO: this needs to be refactored it is a bad designa
-        for key, value in request.data['user'].items():
+        for key, value in request.data['new_user'].items():
             request.data[key] = value
 
         response = super().create(request, *args,**kwargs)
