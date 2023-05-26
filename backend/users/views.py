@@ -37,10 +37,6 @@ class UserRetrieveUpdateListView(
     lookup_field = 'pk'
 
     def create(self, request, *args,**kwargs):
-        # TODO: this needs to be refactored it is a bad designa
-        for key, value in request.data['new_user'].items():
-            request.data[key] = value
-
         response = super().create(request, *args,**kwargs)
         try:
             request_id = send_otp_to_phone(request.data["phone"])
