@@ -31,5 +31,5 @@ class User(AbstractUser, PermissionsMixin):
         ordering = ['-id']
 
 class UserVerification(models.Model):
-    request_id = models.CharField(max_length=500)
+    request_id = models.CharField(max_length=500, null=True)
     user = models.ForeignKey(User, related_name='otp_status', on_delete=models.CASCADE)
