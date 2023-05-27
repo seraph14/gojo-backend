@@ -14,6 +14,7 @@ import os
 import environ
 from pathlib import Path
 from firebase_admin import initialize_app
+from datetime import timedelta
 
 env = environ.Env()
 environ.Env.read_env()
@@ -207,3 +208,5 @@ FCM_DJANGO_SETTINGS = {
     # default: False
     # "UPDATE_ON_DUPLICATE_REG_ID": True/False,
 }
+
+AUTH_TOKEN_VALIDITY = timedelta(days=2)

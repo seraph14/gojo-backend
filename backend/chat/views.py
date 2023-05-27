@@ -1,21 +1,9 @@
-from django.shortcuts import render
-from rest_framework import generics, viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from chat.serializers import ThreadSerializer, MessageSerializer
 from chat.models import Thread, Message
-from rest_framework.decorators import action, api_view, permission_classes
 from users.permissions import IsLandlord, IsManager, CanEditPropertyDetail, CanCreateProperty
-from djangochannelsrestframework.generics import GenericAsyncAPIConsumer
-from djangochannelsrestframework.mixins import (
-    ListModelMixin,
-    RetrieveModelMixin,
-    PatchModelMixin,
-    UpdateModelMixin,
-    CreateModelMixin,
-    DeleteModelMixin,
-)
-from djangochannelsrestframework.decorators import action
 
 
 class ChatView(
