@@ -31,3 +31,4 @@ django-filter==23.2
 fcm-django==1.0.14
 twilio==8.2.1
 vonage==3.5.1
+Faker==0.7.4
