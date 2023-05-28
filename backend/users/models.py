@@ -14,7 +14,10 @@ class User(AbstractUser, PermissionsMixin):
     identification = models.ImageField(upload_to="id_img/", null=True)
     phone = models.CharField(_('phone number'), unique=True, max_length=10)
     is_verified = models.BooleanField(_("is verified"),default=False)
-    # phone_verified = models.BooleanField(_("is phone number verified"), default=False)
+
+    # FIXME: see if there is a better approach for this
+    fb_registration_token = models.CharField(max_length=600, default="__empty__")
+
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = ["first_name", "last_name",]
 

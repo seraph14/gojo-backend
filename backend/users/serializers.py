@@ -26,3 +26,9 @@ class BasicUserSerializer(serializers.ModelSerializer):
         model = User 
         fields = ["id", "avatar", "full_name", "phone"]
         extra_kwargs = {'id': { 'read_only': True } }
+
+class BasicUserSerializerForChat(serializers.ModelSerializer):
+    class Meta:
+        model = User 
+        fields = ["id", "avatar", "phone", "first_name", "last_name"]
+        extra_kwargs = {'id': { 'read_only': True } }
