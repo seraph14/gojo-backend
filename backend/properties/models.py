@@ -47,7 +47,7 @@ class PropertyImage(models.Model):
 class PropertyFacility(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="facilities")
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name="properties")
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    count = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.property.name} - {self.facility.name}"

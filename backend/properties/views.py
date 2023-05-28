@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer, FacilitySerializer
+from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer, FacilitySerializer, PropertySerializerForProfile
 from properties.models import Property, Category, Facility
 from users.permissions import IsLandlord, IsManager, CanEditPropertyDetail, CanCreateProperty
 
@@ -62,6 +62,8 @@ class PropertyView(
     def get_serializer_class(self):
         if self.request.method == "POST":
             return PropertyCreateSerializer
+        if self.action == "favorites" or self.action == "rented":
+            return PropertySerializerForProfile
         return PropertySerializer
 
     @action(detail=False, methods=["GET"], name="favorite_properties")
@@ -81,7 +83,8 @@ class PropertyView(
                 rating: 4.9,
             ),        
         '''
-        return Response("good the endpoint is working favorites", status=status.HTTP_200_OK)
+        # TODO: do the necessary querying
+        return super().list(request)
     
     @action(detail=False, methods=["GET"], name="rented_properties")
     def rented(self, request):
@@ -100,7 +103,8 @@ class PropertyView(
                 rating: 4.9,
             ),        
         '''
-        return Response("good the endpoint is working rented", status=status.HTTP_200_OK)
+        # TODO: do the necessary querying
+        return super().list(request)
     
 
 # TODO: Property Appointment

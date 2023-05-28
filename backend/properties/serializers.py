@@ -2,7 +2,8 @@ from rest_framework import serializers
 from properties.models import Property, PropertyImage, Category, Facility, PropertyFacility
 from users.serializers import UserSerializer
 from users.models import User
-from users.serializers import UserSerializer 
+from users.serializers import UserSerializer
+
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
@@ -20,29 +21,20 @@ class FacilitySerializer(serializers.ModelSerializer):
 
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
-    facility = serializers.SerializerMethodField()
-    
-    def get_facility(self, obj):
-        return { "name": obj.facility.name, "amount": obj.amount }
+    name = serializers.CharField(source="facility.name")
+    count = serializers.DecimalField(max_digits=10, decimal_places=2)
     
     class Meta:
         model = PropertyFacility
-        fields = [ "facility" ]
+        fields = [ "name", "count" ]
 
 class PropertySerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True, required=False)
     owner = UserSerializer()
     category = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
-    # facilities = PropertyFacilitySerializer(many=True, required=False)
-    facilities = serializers.SerializerMethodField()
+    facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
-
-    def get_facilities(self, obj):
-        property_facilities = PropertyFacility.objects.filter(property=obj)
-        data = PropertyFacilitySerializer(property_facilities, many=True).data
-        data = [f["facility"] for f in data]
-        return data
 
     def get_rating(self, obj):
         # TODO: replace with a valid rating
@@ -76,9 +68,7 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         property.categories.set(Category.objects.filter(id__in=categories_data))
 
         for facility_data in facilities_data:
-            print("============================== ", facility_data)
             facility_id, *amount = facility_data
-            print("==============================")
             facility = Facility.objects.get(id=facility_id)
             if amount:
                 amount = amount[0]
@@ -86,7 +76,6 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
             else:
                 PropertyFacility.objects.create(property=property, facility=facility)
         
-        print("=================DONE________________")
         return property
 
 
@@ -99,4 +88,25 @@ class BasicPropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = ["id", "title", "category", "amount",]
+        read_only_fields = ("id",)
+
+class PropertySerializerForProfile(serializers.ModelSerializer):
+    category = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    facilities = PropertyFacilitySerializer(many=True)
+    rating = serializers.SerializerMethodField()
+
+    def get_thumbnail_url(self, obj):
+        return "https://shared-s3.property.ca/public/images/listings/optimized/c5985711/mls/c5985711_1.jpg?v=2"
+
+    def get_category(self, obj):    
+        return obj.category.name
+    
+    def get_rating(self, obj):
+        # TODO: replace with a valid rating
+        return 4.5
+    
+    class Meta:
+        model = Property
+        fields = ["id", "title", "category", "amount", "facilities", "rating", "thumbnail_url"]
         read_only_fields = ("id",)
