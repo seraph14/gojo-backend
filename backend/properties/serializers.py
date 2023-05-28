@@ -88,3 +88,15 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         
         print("=================DONE________________")
         return property
+
+
+class BasicPropertySerializer(serializers.ModelSerializer):
+    category = serializers.SerializerMethodField()
+    
+    def get_category(self, obj):    
+        return obj.category.name
+   
+    class Meta:
+        model = Property
+        fields = ["id", "title", "category", "amount",]
+        read_only_fields = ("id",)
