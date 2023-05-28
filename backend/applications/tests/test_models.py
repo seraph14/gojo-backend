@@ -4,7 +4,7 @@ from django.db.utils import IntegrityError
 from users.models import User
 from users.permissions import UserTypes
 from applications.models import Application
-from applications.utilities import ApplicationStatus
+from applications.utilities import APPLICATION_STATUS
 from properties.models import Property
 
 class ApplicationModelTestCase(TestCase):
@@ -45,7 +45,7 @@ class ApplicationModelTestCase(TestCase):
             description=self.description,
             tenant=self.tenant,
             landlord=self.landlord,
-            status=ApplicationStatus.SIGNED,
+            status=APPLICATION_STATUS.SIGNED,
             property=self.property
         )
         self.assertIsInstance(_application, Application)
@@ -59,9 +59,9 @@ class ApplicationModelTestCase(TestCase):
             description=self.description,
             tenant=self.tenant,
             landlord=self.landlord,
-            status=ApplicationStatus.SIGNED,
+            status=APPLICATION_STATUS.SIGNED,
             property=self.property
         )
-        _application.status = ApplicationStatus.REVOKED
+        _application.status = APPLICATION_STATUS.REVOKED
         _application.save()
-        self.assertEqual(_application.status, ApplicationStatus.REVOKED)
+        self.assertEqual(_application.status, APPLICATION_STATUS.REVOKED)

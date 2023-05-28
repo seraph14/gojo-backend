@@ -7,7 +7,7 @@ from properties.models import Property
 from users.models import User
 from users.utilities import UserTypes
 from applications.models import Application
-from applications.utilities import ApplicationStatus
+from applications.utilities import APPLICATION_STATUS
 
 class ApplicationViewsTest(APITestCase):
 
@@ -63,7 +63,7 @@ class ApplicationViewsTest(APITestCase):
     #         description="Some description",
     #         tenant=self.tenant,
     #         landlord=self.land_lord,
-    #         status=ApplicationStatus.SIGNED,
+    #         status=APPLICATION_STATUS.SIGNED,
     #         property=self.property
     #     )
 
@@ -71,7 +71,7 @@ class ApplicationViewsTest(APITestCase):
     #         "tenant" : self.tenant.id,
     #         "landlord": self.land_lord.id,
     #         "property": self.property.id,
-    #         "status": ApplicationStatus.PENDING,
+    #         "status": APPLICATION_STATUS.PENDING,
     #         "description": "Some Description"    
     #     }
 
