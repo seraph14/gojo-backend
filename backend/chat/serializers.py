@@ -17,7 +17,7 @@ class CustomTimestampField(serializers.DateTimeField):
             return value.strftime("%a %H:%M")
         else:
             # Display the full date for dates before the past 7 days
-            return value.strftime("%b %d, %H:%M")
+            return value.strftime("%b %d, %Y")
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -27,6 +27,7 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ["content", "sender", "timestamp", "seen"]
         read_only_fields = ("id",)
+
 
 
 class MessageViewSerializer(serializers.ModelSerializer):

@@ -22,7 +22,7 @@ class FacilitySerializer(serializers.ModelSerializer):
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="facility.name")
-    count = serializers.DecimalField(max_digits=10, decimal_places=2)
+    count = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
     
     class Meta:
         model = PropertyFacility
@@ -81,13 +81,17 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
 
 class BasicPropertySerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
-    
+    thumbnail_url = serializers.SerializerMethodField()
+
+    def get_thumbnail_url(self, obj):
+        return "https://shared-s3.property.ca/public/images/listings/optimized/c5985711/mls/c5985711_1.jpg?v=2"
+
     def get_category(self, obj):    
         return obj.category.name
    
     class Meta:
         model = Property
-        fields = ["id", "title", "category", "amount",]
+        fields = ["id", "title", "category", "amount", "thumbnail_url"]
         read_only_fields = ("id",)
 
 class PropertySerializerForProfile(serializers.ModelSerializer):
