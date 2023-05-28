@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer, FacilitySerializer
 from properties.models import Property, Category, Facility
 from users.permissions import IsLandlord, IsManager, CanEditPropertyDetail, CanCreateProperty
@@ -12,13 +13,15 @@ class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     lookup_field = "pk"
-    permission_classes = [IsManager]
+    # permission_classes = [IsManager]
+    permission_classes = [AllowAny]
 
 class FacilityView(viewsets.ModelViewSet):
     serializer_class = FacilitySerializer
     queryset = Facility.objects.all()
     lookup_field = "pk"
-    permission_classes = [IsManager]
+    # permission_classes = [IsManager]
+    permission_classes = [AllowAny]
 
 class PropertyView(
     viewsets.ModelViewSet
@@ -60,3 +63,57 @@ class PropertyView(
         if self.request.method == "POST":
             return PropertyCreateSerializer
         return PropertySerializer
+
+    @action(detail=False, methods=["GET"], name="favorite_properties")
+    def favorites(self, request):
+        '''
+        serializer:
+            PropertyItem(
+                id: "1",
+                title: "Villa, Kemah Tinggi",
+                thumbnailUrl: Resources.gojoImages.sofaNetwork,
+                category: "Villa",
+                facilities: [
+                    Facility(name: "Kitchen", count: 1),
+                    Facility(name: "Bedroom", count: 2),
+                ],
+                rent: 14000,
+                rating: 4.9,
+            ),        
+        '''
+        return Response("good the endpoint is working favorites", status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=["GET"], name="rented_properties")
+    def rented(self, request):
+        '''
+        serializer:
+            PropertyItem(
+                id: "1",
+                title: "Villa, Kemah Tinggi",
+                thumbnailUrl: Resources.gojoImages.sofaNetwork,
+                category: "Villa",
+                facilities: [
+                    Facility(name: "Kitchen", count: 1),
+                    Facility(name: "Bedroom", count: 2),
+                ],
+                rent: 14000,
+                rating: 4.9,
+            ),        
+        '''
+        return Response("good the endpoint is working rented", status=status.HTTP_200_OK)
+    
+
+# TODO: Property Appointment
+# TODO: 1. schedule appointment
+# The appointment data is going to be like this:
+'''
+AvailabilityModel(
+        days: [1, 2, 3, 4, 5],
+        timeSlots: {
+          "1": ["10:00 AM", "11:00 AM", "12:00 AM"],
+          "2": ["10:00 AM", "11:00 AM", "12:00 AM"],
+          "3": ["9:00 AM", "11:00 AM", "12:00 AM"],
+        },
+      )
+'''
+# TODO: 1. cancel appointment

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from chat.models import Thread, Message
-from users.serializers import UserSerializer, BasicUserSerializer
+from users.serializers import UserSerializer, BasicUserSerializerForChat
 from users.models import User
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -21,25 +21,41 @@ class CustomTimestampField(serializers.DateTimeField):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = BasicUserSerializer()
+    sender = BasicUserSerializerForChat()
     timestamp = CustomTimestampField()
     class Meta:
         model = Message
         fields = ["content", "sender", "timestamp", "seen"]
         read_only_fields = ("id",)
 
+
+class MessageViewSerializer(serializers.ModelSerializer):
+    from_me = serializers.SerializerMethodField()
+    sender = BasicUserSerializerForChat()
+    timestamp = CustomTimestampField()
+
+    def get_from_me(self, obj):
+        user = self.context['request'].user
+        return user.id == obj.sender.id
+    
+    class Meta:
+        model = Message
+        fields = ["content", "sender", "timestamp", "seen", "from_me"]
+        read_only_fields = ("id",)
+
+
 class ThreadSerializer(serializers.ModelSerializer):
     messages = serializers.SerializerMethodField()
-    user_1 = BasicUserSerializer()
-    user_2 = BasicUserSerializer()
+    tenant = BasicUserSerializerForChat(source="user_1")
+    landlord = BasicUserSerializerForChat(source="user_2")
     unseen_count = serializers.SerializerMethodField()
 
     def get_unseen_count(self, obj):
         return 0
 
     def get_messages(self, obj):
-        return MessageSerializer(Message.objects.all(), many=True).data
+        return MessageViewSerializer(Message.objects.all(), many=True, context=self.context).data
 
     class Meta:
         model = Thread
-        fields = "__all__"
+        fields = [ "id", "messages", "tenant", "landlord", "unseen_count"]

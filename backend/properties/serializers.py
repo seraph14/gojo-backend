@@ -18,8 +18,13 @@ class FacilitySerializer(serializers.ModelSerializer):
         model = Facility
         fields = "__all__"
 
+# TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
-    facility = FacilitySerializer()
+    facility = serializers.SerializerMethodField()
+    
+    def get_facility(self, obj):
+        return { "name": obj.facility.name, "amount": obj.amount }
+    
     class Meta:
         model = PropertyFacility
         fields = [ "facility" ]
@@ -27,9 +32,28 @@ class PropertyFacilitySerializer(serializers.ModelSerializer):
 class PropertySerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True, required=False)
     owner = UserSerializer()
-    categories = CategorySerializer(many=True, required=False)
-    facilities = PropertyFacilitySerializer(many=True, required=False)
+    category = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    # facilities = PropertyFacilitySerializer(many=True, required=False)
+    facilities = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
 
+    def get_facilities(self, obj):
+        property_facilities = PropertyFacility.objects.filter(property=obj)
+        data = PropertyFacilitySerializer(property_facilities, many=True).data
+        data = [f["facility"] for f in data]
+        return data
+
+    def get_rating(self, obj):
+        # TODO: replace with a valid rating
+        return 4.5
+
+    def get_category(self, obj):    
+        return obj.category.name
+
+    def get_thumbnail_url(self, obj):
+        # TODO: replace this thumbnail url
+        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
     class Meta:
         model = Property
         fields = "__all__"

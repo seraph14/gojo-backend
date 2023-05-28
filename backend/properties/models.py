@@ -22,11 +22,19 @@ class Property(models.Model):
     availability = ArrayField(
         models.DateTimeField()
     )
-    categories = models.ManyToManyField(Category)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
     # TODO: virtual_tour
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    # TODO: replace this with address object { street: "", "longitude": 12312, "latitude": 12312 }
+    address = models.JSONField(default=dict, )
+    # TODO: Refactor this and remove it
+    
+    # latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    # longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    
     is_approved = models.BooleanField(default=False)
+    amount = models.DecimalField(max_digits=6, decimal_places=2)
 
     class Meta:
         ordering = ['-id']
@@ -43,3 +51,15 @@ class PropertyFacility(models.Model):
 
     def __str__(self):
         return f"{self.property.name} - {self.facility.name}"
+
+# TODO: property Appointment
+class PropertyAppointment:
+    '''
+        Appointment(
+        phoneNumber: "0911234532",
+        id: "1",
+        fullName: "Braha Marlam Roh I",
+        date: "March 21, 2023",
+        ),
+    '''
+    pass
