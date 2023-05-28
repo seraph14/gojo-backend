@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from chat.models import Thread, Message
-from users.serializers import UserSerializer, BasicUserSerializerForChat
+from users.serializers import UserSerializer, BasicUserSerializer
 from users.models import User
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -21,7 +21,7 @@ class CustomTimestampField(serializers.DateTimeField):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = BasicUserSerializerForChat()
+    sender = BasicUserSerializer()
     timestamp = CustomTimestampField()
     class Meta:
         model = Message
@@ -31,7 +31,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class MessageViewSerializer(serializers.ModelSerializer):
     from_me = serializers.SerializerMethodField()
-    sender = BasicUserSerializerForChat()
+    sender = BasicUserSerializer()
     timestamp = CustomTimestampField()
 
     def get_from_me(self, obj):
@@ -46,8 +46,8 @@ class MessageViewSerializer(serializers.ModelSerializer):
 
 class ThreadSerializer(serializers.ModelSerializer):
     messages = serializers.SerializerMethodField()
-    tenant = BasicUserSerializerForChat(source="user_1")
-    landlord = BasicUserSerializerForChat(source="user_2")
+    tenant = BasicUserSerializer(source="user_1")
+    landlord = BasicUserSerializer(source="user_2")
     unseen_count = serializers.SerializerMethodField()
 
     def get_unseen_count(self, obj):

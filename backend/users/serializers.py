@@ -16,18 +16,8 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True, 'min_length': 6}, 'is_active': { 'read_only': True } }
 
 
-
+# TODO: which part of the code this affects [there used to be [BasicUserSerializerForChat]
 class BasicUserSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField()
-
-    def get_full_name(self, obj):
-        return obj.first_name + " " + obj.last_name
-    class Meta:
-        model = User 
-        fields = ["id", "avatar", "full_name", "phone"]
-        extra_kwargs = {'id': { 'read_only': True } }
-
-class BasicUserSerializerForChat(serializers.ModelSerializer):
     class Meta:
         model = User 
         fields = ["id", "avatar", "phone", "first_name", "last_name"]
