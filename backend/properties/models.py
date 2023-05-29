@@ -26,14 +26,8 @@ class Property(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True)
     # TODO: virtual_tour
 
-    # TODO: replace this with address object { street: "", "longitude": 12312, "latitude": 12312 }
-    address = models.JSONField(default=dict, )
-    # TODO: Refactor this and remove it
-    
-    # latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    # longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    
     is_approved = models.BooleanField(default=False)
+    # FIXME: If you have time rename this field to price
     amount = models.DecimalField(max_digits=6, decimal_places=2)
 
     class Meta:
@@ -52,14 +46,9 @@ class PropertyFacility(models.Model):
     def __str__(self):
         return f"{self.property.name} - {self.facility.name}"
 
-# TODO: property Appointment
-class PropertyAppointment:
-    '''
-        Appointment(
-        phoneNumber: "0911234532",
-        id: "1",
-        fullName: "Braha Marlam Roh I",
-        date: "March 21, 2023",
-        ),
-    '''
-    pass
+
+class PropertyLocation(models.Model):
+    property = models.OneToOneField(Property, on_delete=models.CASCADE, related_name="location")
+    name = models.CharField(max_length=800, blank=True, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)

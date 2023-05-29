@@ -62,6 +62,14 @@ class UserRetrieveUpdateListView(
         user = get_object_or_404(User,id=self.request.user.id)
         return Response({ "user" : serializer(user).data})
 
+    @action(detail=True, methods=["PATCH"], name="current_user")
+    def fb_registration_token(self, request, pk=None):
+        obj = self.get_object()
+        token = request.data.get("firebase_registration_token")
+        obj.fb_registration_token = token
+        obj.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -109,6 +117,8 @@ def resend_otp(request):
 
     return Response({"message": "OTP resent"}, status=status.HTTP_200_OK)
 
+
+# TODO: separate the endpoints for admin, landlord and tenant
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)

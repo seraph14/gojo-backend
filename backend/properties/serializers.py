@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from properties.models import Property, PropertyImage, Category, Facility, PropertyFacility
+from properties.models import Property, PropertyImage, Category, Facility, PropertyFacility, PropertyLocation
 from users.serializers import UserSerializer
 from users.models import User
 from users.serializers import UserSerializer
@@ -18,6 +18,11 @@ class FacilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Facility
         fields = "__all__"
+
+class PropertyLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertyLocation
+        fields = ["name", "longitude", "latitude"]
 
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
@@ -99,6 +104,11 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
+
+
+    # FIXME: on the model replace the location json field b/c longitude and latitude are decimal
+    
+
 
     def get_thumbnail_url(self, obj):
         return "https://shared-s3.property.ca/public/images/listings/optimized/c5985711/mls/c5985711_1.jpg?v=2"

@@ -19,113 +19,355 @@ class Command(BaseCommand):
         self.tenant = User.objects.create_user(
             email="test@tenant.com",
             password="123123",
-            first_name="Tenant",
-            last_name="Natnael",
+            first_name="Surafel",
+            last_name="Kassahun",
             role=UserTypes.TENANT,
             is_active=True,
-            phone="0955211655",
+            phone="0949024607",
+            is_verified=True
             # phone_verified=True,
         )
+        # self.tenant = User.objects.get(phone="0949024607")
         self.landlord = User.objects.create_user(
             email="test@landlord.com",
-            password="123123",
-            first_name="LandLord",
-            last_name="Kidus",
+            password="123",
+            first_name="Natnael",
+            last_name="Abay",
             role=UserTypes.LANDLORD,
             is_active=True,
-            phone="0991150504",
-            # phone_verified=True
+            phone="0918012730",
+            is_verified=True
         )
 
-        self.general = User.objects.create_user(
-            email="test@general.com",
-            password="123123",
-            first_name="GeneralManager",
-            last_name="Lingerew",
-            role=UserTypes.GENERAL_MANAGER,
-            is_active=True,
-            phone="0943447499",
-            # phone_verified=True,
+        # self.landlord = User.objects.get(phone='0918012730')
+
+        from chat.models import Message, Thread
+
+        thread = Thread.objects.create(
+            user_1=self.tenant,
+            user_2=self.landlord
         )
 
-        self.finance = User.objects.create_user(
-            email="test@finance.com",
-            password="123123",
-            first_name="Finance",
-            last_name="Nabek",
-            role=UserTypes.FINANCIAL_MANAGER,
-            is_active=True,
-            phone="0915207146",
-            # phone_verified=True,
+        chat = Message.objects.create(
+            thread=thread,
+            content="This is a fake message! and the landlords side!",
+            sender=self.landlord,
+            seen=True,
         )
 
-        self.listing = User.objects.create_user(
-            email="test@listing.com",
-            password="123123",
-            first_name="Listing",
-            last_name="Lingerew",
-            role=UserTypes.LISTING_MANAGER,
-            is_active=True,
-            phone="0918704962",
-            # phone_verified=True,
-        )
-        # self.user_attach_images()
-        self.seed_properties()
 
-    def user_attach_images(self):
-        url = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80'
 
-        response = requests.get(url)
+        # self.seed_property_v2()
+        # self.seed_pending_transactions()
 
-        if response.status_code == 200:
-            image_file = self.generate_fake_image()
 
-            self.landlord.avatar = image_file
-            self.tenant.avatar = image_file
-            self.listing.avatar = image_file
-            self.finance.avatar = image_file
-            self.general.avatar = image_file
+        self.seed_facilities()
+        self.seed_category()
+        self.seed_properties_full()
+        self.seed_applications()
+        self.seed_appointments()
 
-            self.landlord.avatar.save()
-            self.tenant.avatar.save()
-            self.listing.avatar.save()
-            self.finance.avatar.save()
-            self.general.avatar.save()
 
-            print("Avatar created successfully.")
-        else:
-            print("Failed to download avatar image.")
+        # self.general = User.objects.create_user(
+        #     email="test@general.com",
+        #     password="123123",
+        #     first_name="GeneralManager",
+        #     last_name="Lingerew",
+        #     role=UserTypes.GENERAL_MANAGER,
+        #     is_active=True,
+        #     phone="0943447499",
+        #     # phone_verified=True,
+        # )
 
-    def generate_fake_image(self):
-        response = requests.get(
-            f"https://picsum.photos/{random.choice(range(500, 4000))}/{random.choice(range(500, 4000))}",
-            stream=True
-        )
-        if response.status_code == 200:
-            temp_image = BytesIO(response.content)
-            return File(temp_image)
+        # self.finance = User.objects.create_user(
+        #     email="test@finance.com",
+        #     password="123123",
+        #     first_name="Finance",
+        #     last_name="Nabek",
+        #     role=UserTypes.FINANCIAL_MANAGER,
+        #     is_active=True,
+        #     phone="0915207146",
+        #     # phone_verified=True,
+        # )
 
-        return None
+        # self.listing = User.objects.create_user(
+        #     email="test@listing.com",
+        #     password="123123",
+        #     first_name="Listing",
+        #     last_name="Lingerew",
+        #     role=UserTypes.LISTING_MANAGER,
+        #     is_active=True,
+        #     phone="0918704962",
+        #     # phone_verified=True,
+        # )
+        # # self.user_attach_images()
+        # self.seed_properties()
 
-    def seed_properties(self):
-        property_obj = Property.objects.create(
-            owner=self.tenant,
-            availability=[datetime.now(), datetime.now()],
-            category=[1, 2, 3],
-            latitude=123.456789,
-            longitude=987.654321,
-            facilities={
-                'rooms': 2,
-                'size': {
-                    "area": 23,
-                    "scale": "ft"
-                }}
-        )
 
-        data = self.generate_fake_image()
-        property_image_obj = PropertyImage.objects.create(
-            property=property_obj,
-            image=data
+    def seed_property_v2(self):
+        from properties.models import Property
+        from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
+        from faker import Faker
+        fake = Faker()
+
+        self.property = Property.objects.create(
+            owner=self.landlord,
+            availability=["2020-10-10T12:00:00Z"],
+            latitude=fake.latitude(),
+            longitude=fake.longitude(),
+            amount=8000
         )
 
-        print("PropertyImage created successfully.")
+        self.userRentedProperties = UserRentedProperties.objects.create(
+            property=self.property,
+            start_date="2020-10-10",
+            user=self.tenant,
+            status=PROPERTY_RENT_STATUS.ONGOING
+        )
+
+    def seed_pending_transactions(self):
+        from transactions.models import Transaction
+        from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
+
+        # transaction for pending payment [rent]
+        transaction = Transaction.objects.create(
+            sender=self.tenant,
+            status=TRANSACTION_STATUS.PENDING,
+            type=TRANSACTION_TYPE.RENT_PAYMENT,
+            rent_detail=self.userRentedProperties,
+            amount=self.userRentedProperties.property.amount,
+            payment_date=self.userRentedProperties.start_date
+        )
+
+    def seed_facilities(self):
+        from properties.models import Facility
+        self.facility_1 = Facility.objects.create(name="Bed rooms")
+        self.facility_2 = Facility.objects.create(name="Square Area")
+
+    def seed_category(self):
+        from properties.models import Category
+        self.apartment = Category.objects.create(name="Apartment")
+        self.studio = Category.objects.create(name="Studio")
+        self.vila = Category.objects.create(name="Vila")
+        self.condo = Category.objects.create(name="Condo")
+        self.office = Category.objects.create(name="Office")
+        self.warehouse = Category.objects.create(name="Warehouse")
+    
+    def seed_properties_full(self):
+        from properties.models import Property, Category, Facility, PropertyFacility, PropertyLocation
+        from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
+        from faker import Faker
+        fake = Faker()
+
+        ##################  property 1
+
+        self.property_1 = Property.objects.create(
+            owner=self.landlord,
+            availability=["2020-10-10T12:00:00Z"],
+            title="Test Title",
+            amount=8000,
+            category=self.condo,
+            is_approved=True   
+        )
+
+        self.location_1 = PropertyLocation.objects.create(
+            name="Fake Address",
+            latitude=(fake.latitude()),
+            longitude=(fake.longitude()),
+            property=self.property_1
+        )
+
+
+        self.property_1_facility = PropertyFacility.objects.create(
+            property=self.property_1,
+            facility=self.facility_1,
+            count=20
+        ) 
+
+        self.property_1_facility_2 = PropertyFacility.objects.create(
+            property=self.property_1,
+            facility=self.facility_2,
+            count=25
+        ) 
+
+        self.property_1.facilities.add(self.property_1_facility, self.property_1_facility_2)
+
+        ##################  property 2
+
+        self.property_2 = Property.objects.create(
+            owner=self.landlord,
+            availability=["2020-10-10T12:00:00Z"],
+            title="Test Title 2",
+            amount=8000,
+            category=self.studio,
+            is_approved=True   
+        )
+        
+        self.location_2 = PropertyLocation.objects.create(
+            name="Fake Address 2",
+            latitude=(fake.latitude()),
+            longitude=(fake.longitude()),
+            property=self.property_2
+        )
+
+
+
+        self.property_2_facility = PropertyFacility.objects.create(
+            property=self.property_2,
+            facility=self.facility_1,
+            count=20
+        ) 
+
+        self.property_2_facility_2 = PropertyFacility.objects.create(
+            property=self.property_2,
+            facility=self.facility_2,
+            count=25
+        ) 
+
+        self.property_2.facilities.add(self.property_1_facility, self.property_2_facility_2)
+
+
+
+        ##################  property 3
+
+        self.property_3 = Property.objects.create(
+            owner=self.landlord,
+            availability=["2020-10-10T12:00:00Z"],
+            title="Test Title 3",
+            amount=8000,
+            category=self.studio,
+            is_approved=True   
+        )
+
+        self.location_3 = PropertyLocation.objects.create(
+            name="Fake Address 3",
+            latitude=(fake.latitude()),
+            longitude=(fake.longitude()),
+            property=self.property_3
+        )
+
+
+        
+        self.property_3_facility = PropertyFacility.objects.create(
+            property=self.property_3,
+            facility=self.facility_1,
+            count=20
+        ) 
+
+        self.property_3_facility_2 = PropertyFacility.objects.create(
+            property=self.property_3,
+            facility=self.facility_2,
+            count=25
+        ) 
+
+        self.property_3.facilities.add(self.property_3_facility, self.property_3_facility_2)
+
+
+        ##################  property 4
+
+        self.property_4 = Property.objects.create(
+            owner=self.landlord,
+            availability=["2020-10-10T12:00:00Z"],
+            title="Test Title 4",
+            amount=8000,
+            category=self.studio,
+            is_approved=True   
+        )
+        
+        self.location_4 = PropertyLocation.objects.create(
+            name="Fake Address 4",
+            latitude=(fake.latitude()),
+            longitude=(fake.longitude()),
+            property=self.property_4
+        )
+
+
+        
+        self.property_4_facility = PropertyFacility.objects.create(
+            property=self.property_4,
+            facility=self.facility_1,
+            count=20
+        ) 
+
+        self.property_4_facility_2 = PropertyFacility.objects.create(
+            property=self.property_4,
+            facility=self.facility_2,
+            count=25
+        ) 
+
+        self.property_4.facilities.add(self.property_4_facility, self.property_4_facility_2)
+
+
+
+    def seed_applications(self):
+        from applications.models import Application
+        from applications.utilities import APPLICATION_STATUS
+
+        self.application_pending = Application.objects.create(
+            tenant=self.tenant,
+            status=APPLICATION_STATUS.PENDING,
+            property=self.property_1,
+            possible_start_date="2023-07-25",
+            how_long=5,
+            description="[approved] Some description why you want to get this house."
+        )
+        
+        self.application_approved = Application.objects.create(
+            tenant=self.tenant,
+            status=APPLICATION_STATUS.APPROVED,
+            property=self.property_2,
+            possible_start_date="2023-07-25",
+            how_long=5,
+            description="[approved] Some description why you want to get this house."
+        )
+
+        self.application_withdrawn = Application.objects.create(
+            tenant=self.tenant,
+            status=APPLICATION_STATUS.WITHDRAWN,
+            property=self.property_3,
+            possible_start_date="2023-07-25",
+            how_long=5,
+            description="[withdrawn] Some description why you want to get this house."
+        )
+
+        self.application_rejected = Application.objects.create(
+            tenant=self.tenant,
+            status=APPLICATION_STATUS.REJECTED,
+            property=self.property_4,
+            possible_start_date="2023-07-25",
+            how_long=5,
+            description="[rejected] Some description why you want to get this house."
+
+        )
+
+    def seed_appointments(self):
+        from appointments.models import Appointment
+        from appointments.utils import APPOINTMENT_STATUS
+
+        self.appointment_1 = Appointment.objects.create(
+            status=APPOINTMENT_STATUS.PENDING,
+            property=self.property_1,
+            tenant=self.tenant,
+            appointment_date="2023-06-10T12:00",
+        )
+
+        self.appointment_2 = Appointment.objects.create(
+            status=APPOINTMENT_STATUS.APPROVED,
+            property=self.property_2,
+            tenant=self.tenant,
+            appointment_date="2023-06-10T12:00",
+        )
+
+        self.appointment_3 = Appointment.objects.create(
+            status=APPOINTMENT_STATUS.APPROVED,
+            property=self.property_3,
+            tenant=self.tenant,
+            appointment_date="2023-06-10T12:00",
+        )
+
+        self.appointment_4 = Appointment.objects.create(
+            status=APPOINTMENT_STATUS.CANCELED,
+            property=self.property_4,
+            tenant=self.tenant,
+            appointment_date="2023-06-10T12:00",
+        )

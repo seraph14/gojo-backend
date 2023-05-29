@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "commands",
     "chapa",
     "chat",
+    "appointments",
     "channels",
 ]
 AUTH_USER_MODEL = "users.User"
