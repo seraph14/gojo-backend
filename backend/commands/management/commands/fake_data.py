@@ -66,7 +66,7 @@ class Command(BaseCommand):
         self.seed_properties_full()
         self.seed_applications()
         self.seed_appointments()
-
+        self.seed_virtual_tour()
 
         # self.general = User.objects.create_user(
         #     email="test@general.com",
@@ -371,3 +371,83 @@ class Command(BaseCommand):
             tenant=self.tenant,
             appointment_date="2023-06-10T12:00",
         )
+
+    def seed_virtual_tour(self):
+        import uuid
+        from decimal import Decimal
+        from properties.models import Link, Marker, HotspotNode, VirtualTour
+        from faker import Faker
+
+        faker = Faker()
+        uuid_4 = uuid.uuid4()
+        uuid_4_2 = uuid.uuid4()
+
+        print("====================== ", uuid_4)
+        print("====================== ", uuid_4_2)
+
+
+        self.virtual_tour = VirtualTour.objects.create(
+            property=self.property_1,
+            defaultViewPosition_latitude=faker.latitude(),
+            defaultViewPosition_longitude=faker.longitude(),
+            initialView=uuid_4
+        )
+
+        self.hotspot_node = HotspotNode.objects.create(
+            id=uuid_4,
+            panorama="/home/nati/Desktop/1674411002858.jpeg",
+            virtual_tour=self.virtual_tour
+        )
+
+        self.hotspot_node_2 = HotspotNode.objects.create(
+            id=uuid_4_2,
+            panorama="/home/nati/Desktop/1674411002858.jpeg",
+            virtual_tour=self.virtual_tour
+        )
+        
+
+        self.virtual_tour.hotspotNodes.set([self.hotspot_node, self.hotspot_node_2])
+
+        self.link = Link.objects.create(
+            nodeId=uuid_4_2,
+            latitude=faker.latitude(),
+            longitude=faker.longitude(),
+            node=self.hotspot_node
+        )
+
+        self.link_2 = Link.objects.create(
+            nodeId=uuid_4,
+            latitude=faker.latitude(),
+            longitude=faker.longitude(),
+            node=self.hotspot_node_2
+        )
+
+        self.hotspot_node.links.set([self.link])
+        self.hotspot_node_2.links.set([self.link_2])
+
+        self.marker = Marker.objects.create(
+            id=uuid.uuid4(),
+            linksTo=uuid_4_2,
+            tooltip="Move to the next scene",
+            width=48,
+            height=48,
+            longitude=faker.latitude(),
+            latitude=faker.longitude(),
+            anchor="center",
+            node=self.hotspot_node
+        )
+
+        self.marker_2 = Marker.objects.create(
+            id=uuid.uuid4(),
+            linksTo=uuid_4,
+            tooltip="Move to the next scene",
+            width=48,
+            height=48,
+            longitude=faker.latitude(),
+            latitude=faker.longitude(),
+            anchor="center",
+            node=self.hotspot_node_2
+        )
+        
+        self.hotspot_node.markers.set([self.marker])
+        self.hotspot_node_2.markers.set([self.marker_2])

@@ -52,3 +52,37 @@ class PropertyLocation(models.Model):
     name = models.CharField(max_length=800, blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+##################### Virtual tour models ##########################
+
+class VirtualTour(models.Model):
+    property = models.OneToOneField(Property,on_delete=models.CASCADE, related_name="virtual_tour")
+    defaultViewPosition_latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    defaultViewPosition_longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    initialView = models.UUIDField(null=True)
+
+class HotspotNode(models.Model):
+    node_id = models.AutoField(primary_key=True)
+    id = models.UUIDField()
+    panorama = models.ImageField(max_length=255, upload_to="panorama_images/")
+    virtual_tour = models.ForeignKey(VirtualTour, on_delete=models.CASCADE, related_name="hotspotNodes", null=True)
+
+class Link(models.Model):
+    nodeId = models.UUIDField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    node = models.ForeignKey(HotspotNode, on_delete=models.CASCADE, related_name="links")
+
+class Marker(models.Model):
+    marker_id = models.AutoField(primary_key=True)
+    id = models.UUIDField()
+    tooltip = models.CharField(max_length=255, blank=True)
+    width = models.FloatField()
+    height = models.FloatField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    anchor = models.CharField(max_length=255, blank=True)
+    linksTo = models.UUIDField(null=True)
+
+    node = models.ForeignKey(HotspotNode, on_delete=models.CASCADE, related_name="markers")
+###############################################

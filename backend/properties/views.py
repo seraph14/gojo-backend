@@ -4,9 +4,21 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from properties.serializers import PropertyCreateSerializer, PropertySerializer, CategorySerializer, FacilitySerializer, PropertySerializerForProfile
-from properties.models import Property, Category, Facility
-from users.permissions import IsLandlord, IsManager, CanEditPropertyDetail, CanCreateProperty
+from properties.serializers import (
+    PropertyCreateSerializer,
+    PropertySerializer,
+    CategorySerializer,
+    FacilitySerializer,
+    PropertySerializerForProfile,
+    VirtualTourSerializer
+)
+from properties.models import Property, Category, Facility, VirtualTour
+from users.permissions import (
+    IsLandlord,
+    IsManager,
+    CanEditPropertyDetail,
+    CanCreateProperty
+)
 
 
 class CategoryView(viewsets.ModelViewSet):
@@ -42,9 +54,9 @@ class PropertyView(
 
         if self.action == "destroy":
             return [IsAuthenticated(), IsManager()]
-        
+
         return [AllowAny()]
-    
+
     def perform_create(self, serializer):
         instance = serializer.save()
         property_serializer = PropertySerializer(instance)
@@ -53,7 +65,7 @@ class PropertyView(
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)        
+        self.perform_create(serializer)
         if hasattr(self.request, '_property_data'):
             data = self.request._property_data
             del self.request._property_data
@@ -64,6 +76,7 @@ class PropertyView(
             return PropertyCreateSerializer
         if self.action == "favorites" or self.action == "rented":
             return PropertySerializerForProfile
+
         return PropertySerializer
 
     @action(detail=False, methods=["GET"], name="favorite_properties")
@@ -85,7 +98,7 @@ class PropertyView(
         '''
         # TODO: do the necessary querying
         return super().list(request)
-    
+
     @action(detail=False, methods=["GET"], name="rented_properties")
     def rented(self, request):
         '''
@@ -105,7 +118,19 @@ class PropertyView(
         '''
         # TODO: do the necessary querying
         return super().list(request)
-    
+
+
+    @action(detail=True, methods=["GET", "POST"], name="virtual_tour")
+    def virtual_tour(self, request, pk=None):
+        objects = VirtualTour.objects.filter(property=self.get_object())
+        if self.request.method == "GET":
+            return Response(VirtualTourSerializer(objects, many=True).data, status=status.HTTP_200_OK)
+
+        if self.request.method == "POST":
+            from properties.utils import create_virtual_tour_object
+            virtual_tour = create_virtual_tour_object(self.request.data, self.get_object())
+            return Response(VirtualTourSerializer(virtual_tour).data, status=status.HTTP_200_OK)
+
 
 # TODO: Property Appointment
 # TODO: 1. schedule appointment
@@ -121,3 +146,5 @@ AvailabilityModel(
       )
 '''
 # TODO: 1. cancel appointment
+
+

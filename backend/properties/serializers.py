@@ -1,5 +1,17 @@
 from rest_framework import serializers
-from properties.models import Property, PropertyImage, Category, Facility, PropertyFacility, PropertyLocation
+from properties.models import (
+    Property, 
+    PropertyImage, 
+    Category, 
+    Facility, 
+    PropertyFacility, 
+    PropertyLocation,
+    
+    Marker,
+    Link,
+    HotspotNode,
+    VirtualTour
+)
 from users.serializers import UserSerializer
 from users.models import User
 from users.serializers import UserSerializer
@@ -40,6 +52,7 @@ class PropertySerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
+    location = PropertyLocationSerializer()
 
     def get_rating(self, obj):
         # TODO: replace with a valid rating
@@ -124,3 +137,41 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
         model = Property
         fields = ["id", "title", "category", "amount", "facilities", "rating", "thumbnail_url"]
         read_only_fields = ("id",)
+
+
+############### Marker Serializer #################
+class MarkerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Marker
+        fields = "__all__"
+
+############### Link Serializer #################
+class LinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Link
+        fields = "__all__"
+
+############### HotspotNode Serializer #################
+class HotspotNodeSerializer(serializers.ModelSerializer):
+    links = LinkSerializer(many=True)
+    markers = MarkerSerializer(many=True)
+
+    class Meta:
+        model = HotspotNode
+        fields = "__all__"
+
+
+############### Marker Serializer #################
+class VirtualTourSerializer(serializers.ModelSerializer):
+    defaultViewPosition = serializers.SerializerMethodField()
+    hotspotNodes = HotspotNodeSerializer(many=True)
+
+    def get_defaultViewPosition(self, obj):
+        return {
+            "latitude": obj.defaultViewPosition_latitude, 
+            "longitude": obj.defaultViewPosition_latitude 
+        }
+
+    class Meta:
+        model = VirtualTour
+        fields = "__all__"
