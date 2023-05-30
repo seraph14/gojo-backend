@@ -6,7 +6,6 @@ from properties.models import (
     Facility, 
     PropertyFacility, 
     PropertyLocation,
-    
     Marker,
     Link,
     HotspotNode,
@@ -14,7 +13,9 @@ from properties.models import (
 )
 from users.serializers import UserSerializer
 from users.models import User
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, BasicUserSerializer
+from reviews.serializers import ReviewSerializer
+
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,11 +40,11 @@ class PropertyLocationSerializer(serializers.ModelSerializer):
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="facility.name")
-    count = serializers.DecimalField(max_digits=10, decimal_places=2, coerce_to_string=False)
+    amount = serializers.DecimalField(max_digits=30, decimal_places=15, coerce_to_string=False, source="count")
     
     class Meta:
         model = PropertyFacility
-        fields = [ "name", "count" ]
+        fields = [ "name", "amount" , "id"]
 
 class PropertySerializer(serializers.ModelSerializer):
     images = PropertyImageSerializer(many=True, required=False)
@@ -53,6 +54,7 @@ class PropertySerializer(serializers.ModelSerializer):
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
     location = PropertyLocationSerializer()
+    reviews = ReviewSerializer(many=True)
 
     def get_rating(self, obj):
         # TODO: replace with a valid rating
@@ -62,8 +64,11 @@ class PropertySerializer(serializers.ModelSerializer):
         return obj.category.name
 
     def get_thumbnail_url(self, obj):
-        # TODO: replace this thumbnail url
+        imgs = obj.images
+        if imgs.count() != 0:
+            return imgs[0]
         return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+   
     class Meta:
         model = Property
         fields = "__all__"
@@ -71,39 +76,78 @@ class PropertySerializer(serializers.ModelSerializer):
 
 
 class PropertyCreateSerializer(serializers.ModelSerializer):
-    facilities = serializers.ListField(child=serializers.ListField(child=serializers.IntegerField()))
-    categories = serializers.ListField(child=serializers.IntegerField())
+    facilities = PropertyFacilitySerializer(many=True)
+    category = CategorySerializer()
+    address = PropertyLocationSerializer(source="location")
+    owner = BasicUserSerializer(read_only=True)
+    images = serializers.ListField(child=serializers.ImageField(), required=False)
 
     class Meta:
         model = Property
         fields = "__all__"
 
     def create(self, validated_data):
-        facilities_data = validated_data.pop('facilities')
-        categories_data = validated_data.pop('categories')
-        property = Property.objects.create(**validated_data)
+        owner = self.context["request"].user
 
-        property.categories.set(Category.objects.filter(id__in=categories_data))
+        validated_data.pop("facilities")
+        validated_data.pop("category")
+        validated_data.pop("location")
+        images_data = validated_data.pop('images', [])
 
-        for facility_data in facilities_data:
-            facility_id, *amount = facility_data
-            facility = Facility.objects.get(id=facility_id)
-            if amount:
-                amount = amount[0]
-                PropertyFacility.objects.create(property=property, facility=facility, amount=amount)
-            else:
-                PropertyFacility.objects.create(property=property, facility=facility)
+        address = self.context["request"].data["address"]
+
+        category_data = self.context["request"].data["category"]
+
+        category_instance = Category.objects.get(id=category_data["id"])
+    
+        property_instance = Property.objects.create(owner=owner, category=category_instance, **validated_data)
+
+        facilities = []
+        property_facility = self.context["request"].data["facilities"]
+        for facility in property_facility:
+            facility_instance = Facility.objects.get(id=facility["id"])
+            facilities.append(PropertyFacility.objects.get_or_create(
+                property=property_instance,
+                facility=facility_instance, 
+                count=facility["amount"] # FIXME:the naming is not consistent
+            ))
+
+        address_instance, _ = PropertyLocation.objects.get_or_create(property=property_instance, **address)
+
+        for image in images_data:
+            image = PropertyImage.objects.create(property=property_instance, image=image)
+
+        return property_instance
+
+    # def create(self, validated_data):
+    #     facilities_data = validated_data.pop('facilities')
+    #     categories_data = validated_data.pop('categories')
+    #     property = Property.objects.create(**validated_data)
+
+    #     property.categories.set(Category.objects.filter(id__in=categories_data))
+
+    #     for facility_data in facilities_data:
+    #         facility_id, *amount = facility_data
+    #         facility = Facility.objects.get(id=facility_id)
+    #         if amount:
+    #             amount = amount[0]
+    #             PropertyFacility.objects.create(property=property, facility=facility, amount=amount)
+    #         else:
+    #             PropertyFacility.objects.create(property=property, facility=facility)
         
-        return property
+    #     return property
 
 
 class BasicPropertySerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
-
+    
     def get_thumbnail_url(self, obj):
-        return "https://shared-s3.property.ca/public/images/listings/optimized/c5985711/mls/c5985711_1.jpg?v=2"
-
+        imgs = obj.images
+        if imgs.count() != 0:
+            return imgs[0]
+        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+   
     def get_category(self, obj):    
         return obj.category.name
    
@@ -119,13 +163,12 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
 
 
-    # FIXME: on the model replace the location json field b/c longitude and latitude are decimal
-    
-
-
     def get_thumbnail_url(self, obj):
-        return "https://shared-s3.property.ca/public/images/listings/optimized/c5985711/mls/c5985711_1.jpg?v=2"
-
+        imgs = obj.images
+        if imgs.count() != 0:
+            return imgs[0]
+        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+   
     def get_category(self, obj):    
         return obj.category.name
     

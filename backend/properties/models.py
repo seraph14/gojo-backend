@@ -19,12 +19,10 @@ class Facility(models.Model):
 
 class Property(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    availability = ArrayField(
-        models.DateTimeField()
-    )
+    visiting_hours = models.JSONField(default=dict)
+
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255, null=True, blank=True)
-    # TODO: virtual_tour
 
     is_approved = models.BooleanField(default=False)
     # FIXME: If you have time rename this field to price
@@ -50,11 +48,10 @@ class PropertyFacility(models.Model):
 class PropertyLocation(models.Model):
     property = models.OneToOneField(Property, on_delete=models.CASCADE, related_name="location")
     name = models.CharField(max_length=800, blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    latitude = models.DecimalField(max_digits=30, decimal_places=15)
+    longitude = models.DecimalField(max_digits=30, decimal_places=15)
 
 ##################### Virtual tour models ##########################
-
 class VirtualTour(models.Model):
     property = models.OneToOneField(Property,on_delete=models.CASCADE, related_name="virtual_tour")
     defaultViewPosition_latitude = models.DecimalField(max_digits=9, decimal_places=6)
@@ -85,4 +82,5 @@ class Marker(models.Model):
     linksTo = models.UUIDField(null=True)
 
     node = models.ForeignKey(HotspotNode, on_delete=models.CASCADE, related_name="markers")
+
 ###############################################

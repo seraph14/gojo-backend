@@ -119,15 +119,54 @@ def resend_otp(request):
 
 
 # TODO: separate the endpoints for admin, landlord and tenant
-class CustomAuthToken(ObtainAuthToken):
+class CustomTenantAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
 
+        if user.role != UserTypes.TENANT:
+            return Response({"message": "invalid login route"}, status=status.HTTP_401_UNAUTHORIZED)
+
         token, created = Token.objects.get_or_create(user=user,)
         usr_data = UserSerializer(user).data
         usr_data["token"] = token.key
+
+        return Response({
+            'user': usr_data 
+        }, status=status.HTTP_200_OK)
+
+
+class CustomLandlordAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+
+        if user.role != UserTypes.LANDLORD:
+            return Response({"message": "invalid login route"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token, created = Token.objects.get_or_create(user=user,)
+        usr_data = UserSerializer(user).data
+        usr_data["token"] = token.key
+
+        return Response({
+            'user': usr_data 
+        }, status=status.HTTP_200_OK)
+
+class CustomAdminAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+
+        if user.role not in [UserTypes.GENERAL_MANAGER, UserTypes.LISTING_MANAGER, UserTypes.FINANCIAL_MANAGER]:
+            return Response({"message": "invalid login route"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token, created = Token.objects.get_or_create(user=user,)
+        usr_data = UserSerializer(user).data
+        usr_data["token"] = token.key
+        
         return Response({
             'user': usr_data 
         }, status=status.HTTP_200_OK)

@@ -12,7 +12,6 @@ from users.utilities import UserTypes
 from properties.models import Property, PropertyImage
 
 
-
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
@@ -39,6 +38,17 @@ class Command(BaseCommand):
             is_verified=True
         )
 
+        self.landlord = User.objects.create_user(
+            email="test@landlord.com",
+            password="123",
+            first_name="Kidus",
+            last_name="Yoseph",
+            role=UserTypes.LANDLORD,
+            is_active=True,
+            phone="0972476097",
+            is_verified=True
+        )
+
         # self.landlord = User.objects.get(phone='0918012730')
 
         from chat.models import Message, Thread
@@ -55,11 +65,8 @@ class Command(BaseCommand):
             seen=True,
         )
 
-
-
         # self.seed_property_v2()
         # self.seed_pending_transactions()
-
 
         self.seed_facilities()
         self.seed_category()
@@ -103,7 +110,6 @@ class Command(BaseCommand):
         # # self.user_attach_images()
         # self.seed_properties()
 
-
     def seed_property_v2(self):
         from properties.models import Property
         from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
@@ -112,7 +118,18 @@ class Command(BaseCommand):
 
         self.property = Property.objects.create(
             owner=self.landlord,
-            availability=["2020-10-10T12:00:00Z"],
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": 9,
+                    "to": 11
+                },
+                {
+                    "day": "Tuesday",
+                    "from": 11,
+                    "to": 13
+                }
+            ],
             latitude=fake.latitude(),
             longitude=fake.longitude(),
             amount=8000
@@ -152,22 +169,33 @@ class Command(BaseCommand):
         self.condo = Category.objects.create(name="Condo")
         self.office = Category.objects.create(name="Office")
         self.warehouse = Category.objects.create(name="Warehouse")
-    
+
     def seed_properties_full(self):
         from properties.models import Property, Category, Facility, PropertyFacility, PropertyLocation
         from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
         from faker import Faker
         fake = Faker()
 
-        ##################  property 1
+        # property 1
 
         self.property_1 = Property.objects.create(
             owner=self.landlord,
-            availability=["2020-10-10T12:00:00Z"],
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": 9,
+                    "to": 11
+                },
+                {
+                    "day": "Tuesday",
+                    "from": 11,
+                    "to": 13
+                }
+            ],
             title="Test Title",
             amount=8000,
             category=self.condo,
-            is_approved=True   
+            is_approved=True
         )
 
         self.location_1 = PropertyLocation.objects.create(
@@ -177,32 +205,43 @@ class Command(BaseCommand):
             property=self.property_1
         )
 
-
         self.property_1_facility = PropertyFacility.objects.create(
             property=self.property_1,
             facility=self.facility_1,
             count=20
-        ) 
+        )
 
         self.property_1_facility_2 = PropertyFacility.objects.create(
             property=self.property_1,
             facility=self.facility_2,
             count=25
-        ) 
+        )
 
-        self.property_1.facilities.add(self.property_1_facility, self.property_1_facility_2)
+        self.property_1.facilities.add(
+            self.property_1_facility, self.property_1_facility_2)
 
-        ##################  property 2
+        # property 2
 
         self.property_2 = Property.objects.create(
             owner=self.landlord,
-            availability=["2020-10-10T12:00:00Z"],
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": 9,
+                    "to": 11
+                },
+                {
+                    "day": "Tuesday",
+                    "from": 11,
+                    "to": 13
+                }
+            ],
             title="Test Title 2",
             amount=8000,
             category=self.studio,
-            is_approved=True   
+            is_approved=True
         )
-        
+
         self.location_2 = PropertyLocation.objects.create(
             name="Fake Address 2",
             latitude=(fake.latitude()),
@@ -210,33 +249,41 @@ class Command(BaseCommand):
             property=self.property_2
         )
 
-
-
         self.property_2_facility = PropertyFacility.objects.create(
             property=self.property_2,
             facility=self.facility_1,
             count=20
-        ) 
+        )
 
         self.property_2_facility_2 = PropertyFacility.objects.create(
             property=self.property_2,
             facility=self.facility_2,
             count=25
-        ) 
+        )
 
-        self.property_2.facilities.add(self.property_1_facility, self.property_2_facility_2)
+        self.property_2.facilities.add(
+            self.property_1_facility, self.property_2_facility_2)
 
-
-
-        ##################  property 3
+        # property 3
 
         self.property_3 = Property.objects.create(
             owner=self.landlord,
-            availability=["2020-10-10T12:00:00Z"],
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": 9,
+                    "to": 11
+                },
+                {
+                    "day": "Tuesday",
+                    "from": 11,
+                    "to": 13
+                }
+            ],
             title="Test Title 3",
             amount=8000,
             category=self.studio,
-            is_approved=True   
+            is_approved=True
         )
 
         self.location_3 = PropertyLocation.objects.create(
@@ -246,34 +293,43 @@ class Command(BaseCommand):
             property=self.property_3
         )
 
-
-        
         self.property_3_facility = PropertyFacility.objects.create(
             property=self.property_3,
             facility=self.facility_1,
             count=20
-        ) 
+        )
 
         self.property_3_facility_2 = PropertyFacility.objects.create(
             property=self.property_3,
             facility=self.facility_2,
             count=25
-        ) 
+        )
 
-        self.property_3.facilities.add(self.property_3_facility, self.property_3_facility_2)
+        self.property_3.facilities.add(
+            self.property_3_facility, self.property_3_facility_2)
 
-
-        ##################  property 4
+        # property 4
 
         self.property_4 = Property.objects.create(
             owner=self.landlord,
-            availability=["2020-10-10T12:00:00Z"],
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": 9,
+                    "to": 11
+                },
+                {
+                    "day": "Tuesday",
+                    "from": 11,
+                    "to": 13
+                }
+            ],
             title="Test Title 4",
             amount=8000,
             category=self.studio,
-            is_approved=True   
+            is_approved=True
         )
-        
+
         self.location_4 = PropertyLocation.objects.create(
             name="Fake Address 4",
             latitude=(fake.latitude()),
@@ -281,23 +337,20 @@ class Command(BaseCommand):
             property=self.property_4
         )
 
-
-        
         self.property_4_facility = PropertyFacility.objects.create(
             property=self.property_4,
             facility=self.facility_1,
             count=20
-        ) 
+        )
 
         self.property_4_facility_2 = PropertyFacility.objects.create(
             property=self.property_4,
             facility=self.facility_2,
             count=25
-        ) 
+        )
 
-        self.property_4.facilities.add(self.property_4_facility, self.property_4_facility_2)
-
-
+        self.property_4.facilities.add(
+            self.property_4_facility, self.property_4_facility_2)
 
     def seed_applications(self):
         from applications.models import Application
@@ -311,7 +364,7 @@ class Command(BaseCommand):
             how_long=5,
             description="[approved] Some description why you want to get this house."
         )
-        
+
         self.application_approved = Application.objects.create(
             tenant=self.tenant,
             status=APPLICATION_STATUS.APPROVED,
@@ -385,7 +438,6 @@ class Command(BaseCommand):
         print("====================== ", uuid_4)
         print("====================== ", uuid_4_2)
 
-
         self.virtual_tour = VirtualTour.objects.create(
             property=self.property_1,
             defaultViewPosition_latitude=faker.latitude(),
@@ -404,9 +456,9 @@ class Command(BaseCommand):
             panorama="/home/nati/Desktop/1674411002858.jpeg",
             virtual_tour=self.virtual_tour
         )
-        
 
-        self.virtual_tour.hotspotNodes.set([self.hotspot_node, self.hotspot_node_2])
+        self.virtual_tour.hotspotNodes.set(
+            [self.hotspot_node, self.hotspot_node_2])
 
         self.link = Link.objects.create(
             nodeId=uuid_4_2,
@@ -448,6 +500,6 @@ class Command(BaseCommand):
             anchor="center",
             node=self.hotspot_node_2
         )
-        
+
         self.hotspot_node.markers.set([self.marker])
         self.hotspot_node_2.markers.set([self.marker_2])

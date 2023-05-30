@@ -19,7 +19,7 @@ from users.permissions import (
     CanEditPropertyDetail,
     CanCreateProperty
 )
-
+from users.serializers import BasicUserSerializer
 
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
