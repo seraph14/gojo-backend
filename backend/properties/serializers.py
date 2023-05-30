@@ -35,7 +35,7 @@ class FacilitySerializer(serializers.ModelSerializer):
 class PropertyLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyLocation
-        fields = ["name", "longitude", "latitude"]
+        fields = ["street", "longitude", "latitude"]
 
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
@@ -92,7 +92,7 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         validated_data.pop("facilities")
         validated_data.pop("category")
         validated_data.pop("location")
-        images_data = validated_data.pop('images', [])
+        # images_data = validated_data.pop('images', [])
 
         address = self.context["request"].data["address"]
 
@@ -114,28 +114,10 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
 
         address_instance, _ = PropertyLocation.objects.get_or_create(property=property_instance, **address)
 
-        for image in images_data:
-            image = PropertyImage.objects.create(property=property_instance, image=image)
+        # for image in images_data:
+        #     image = PropertyImage.objects.create(property=property_instance, image=image)
 
         return property_instance
-
-    # def create(self, validated_data):
-    #     facilities_data = validated_data.pop('facilities')
-    #     categories_data = validated_data.pop('categories')
-    #     property = Property.objects.create(**validated_data)
-
-    #     property.categories.set(Category.objects.filter(id__in=categories_data))
-
-    #     for facility_data in facilities_data:
-    #         facility_id, *amount = facility_data
-    #         facility = Facility.objects.get(id=facility_id)
-    #         if amount:
-    #             amount = amount[0]
-    #             PropertyFacility.objects.create(property=property, facility=facility, amount=amount)
-    #         else:
-    #             PropertyFacility.objects.create(property=property, facility=facility)
-        
-    #     return property
 
 
 class BasicPropertySerializer(serializers.ModelSerializer):
@@ -184,20 +166,36 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
 
 ############### Marker Serializer #################
 class MarkerSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    latitude = serializers.DecimalField(max_digits=30, decimal_places=20, coerce_to_string=False)
+    longitude = serializers.DecimalField(max_digits=30, decimal_places=20, coerce_to_string=False)
+
+    def get_image(self, obj):
+        import os
+        return os.environ.get("DOMAIN", "http://localhost:8000", ) + "/panorama_images/marker.png"
+
     class Meta:
         model = Marker
         fields = "__all__"
 
 ############### Link Serializer #################
 class LinkSerializer(serializers.ModelSerializer):
+    latitude = serializers.DecimalField(max_digits=30, decimal_places=20, coerce_to_string=False)
+    longitude = serializers.DecimalField(max_digits=30, decimal_places=20, coerce_to_string=False)
+
     class Meta:
         model = Link
         fields = "__all__"
 
 ############### HotspotNode Serializer #################
+
 class HotspotNodeSerializer(serializers.ModelSerializer):
     links = LinkSerializer(many=True)
     markers = MarkerSerializer(many=True)
+    panorama = serializers.SerializerMethodField()
+    def get_panorama(self, obj):
+        import os
+        return os.environ.get("DOMAIN", "http://localhost:8000") + obj.panorama.url
 
     class Meta:
         model = HotspotNode
@@ -210,10 +208,74 @@ class VirtualTourSerializer(serializers.ModelSerializer):
     hotspotNodes = HotspotNodeSerializer(many=True)
 
     def get_defaultViewPosition(self, obj):
+        from decimal import Decimal
         return {
-            "latitude": obj.defaultViewPosition_latitude, 
-            "longitude": obj.defaultViewPosition_latitude 
+            "latitude": (obj.defaultViewPosition_latitude), 
+            "longitude": (obj.defaultViewPosition_longitude) 
         }
+
+
+    def create(self, validated_data):
+        import json
+        from decimal import Decimal
+        from properties.models import Link, Marker, HotspotNode, VirtualTour
+
+        default_view_position = validated_data.pop("defaultViewPosition")
+        virtual_tour = VirtualTour.objects.create(
+            property=property,
+            defaultViewPosition_latitude=Decimal(default_view_position.get("latitude")),
+            defaultViewPosition_longitude=Decimal(default_view_position.get("longitude")),
+            initialView=data.get("initialView", None)
+        )
+
+        nodes = []
+        hotspot_nodes = validated_data.pop("hotspotNodes")
+
+        for node in hotspot_nodes:
+
+            hotspot_node = HotspotNode.objects.create(
+                id=node.get("id"),
+                panorama=data[node.get("id")],
+                virtual_tour=virtual_tour
+            )
+
+            links = []
+            for link in node.get("links", []):
+                _link = Link.objects.create(
+                    nodeId=link.get("nodeId"),
+                    latitude=Decimal(link.get("latitude")),
+                    longitude=Decimal(link.get("longitude")),
+                    node=hotspot_node
+                )
+
+                links.append(_link)
+
+            hotspot_node.links.set(links)
+
+            markers = []
+            for marker in node.get("markers", []):
+                _marker = Marker.objects.create(
+                    id=marker.get("id", ""),
+                    linksTo=marker.get("linksTo"),
+                    tooltip=marker.get("tooltip", ""),
+                    width=marker.get("width"),
+                    height=marker.get("height"),
+                    longitude=Decimal(marker.get("longitude")),
+                    latitude=Decimal(marker.get("longitude")),
+                    anchor=marker.get("anchor"),
+                    node=hotspot_node
+                )
+
+                markers.append(_marker)
+
+            hotspot_node.markers.set(markers)
+            
+            nodes.append(hotspot_node)    
+        
+        virtual_tour.hotspotNodes.set(nodes)
+
+        return virtual_tour
+
 
     class Meta:
         model = VirtualTour

@@ -147,10 +147,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# CRONJOBS = [
-#     ('*/1 * * * *', 'myapp.cron.my_scheduled_job')
-# ]
+CRONJOBS = [
+    ('* * * * *', 'backend.cron.test_scheduler')
+]
 
+CRONTAB_COMMAND_PREFIX="python manage.py"
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -189,6 +190,8 @@ CHANNEL_LAYERS = {
     }
 }
 
+DATA_UPLOAD_MAX_MEMORY_SIZE=8000000000
+FILE_UPLOAD_MAX_MEMORY_SIZE=8000000000
 
 FCM_DJANGO_SETTINGS = {
      # an instance of firebase_admin.App to be used as default for all fcm-django requests

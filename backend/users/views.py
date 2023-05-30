@@ -62,10 +62,10 @@ class UserRetrieveUpdateListView(
         user = get_object_or_404(User,id=self.request.user.id)
         return Response({ "user" : serializer(user).data})
 
-    @action(detail=True, methods=["PATCH"], name="current_user")
+    @action(detail=False, methods=["POST"], name="current_user")
     def fb_registration_token(self, request, pk=None):
-        obj = self.get_object()
-        token = request.data.get("firebase_registration_token")
+        obj = request.user
+        token = request.data.get("token")
         obj.fb_registration_token = token
         obj.save()
         return Response(status=status.HTTP_204_NO_CONTENT)

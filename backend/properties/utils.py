@@ -1,20 +1,38 @@
-def create_virtual_tour_object(data, property):
+def create_virtual_tour_object(data, imgs, property):
     from decimal import Decimal
     from properties.models import Link, Marker, HotspotNode, VirtualTour
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+    from django.utils.text import get_valid_filename
+    import os
+    import uuid
+    import imghdr
+    import base64
 
+    default_view_position = (data["defaultViewPosition"]) 
     virtual_tour = VirtualTour.objects.create(
         property=property,
-        defaultViewPosition_latitude=Decimal(data["defaultViewPosition"].get("latitude")),
-        defaultViewPosition_longitude=Decimal(data["defaultViewPosition"].get("longitude")),
+        defaultViewPosition_latitude=Decimal(default_view_position.get("latitude")),
+        defaultViewPosition_longitude=Decimal(default_view_position.get("longitude")),
         initialView=data.get("initialView", None)
     )
 
     nodes = []
-    for node in data.get("hotspotNodes"):
+    hotspot_nodes = (data.get("hotspotNodes"))
+
+    for node in hotspot_nodes:
+
+
+        # extension
+        base64_data = imgs.get(node.get("id"))
+        format, imgstr = base64_data.split(";base64,")
+        ext = format.split("/")[-1]
+        unique_filename = str(uuid.uuid4())
+        image = ContentFile(base64.b64decode(imgstr), name=f"{unique_filename}.{ext}")
 
         hotspot_node = HotspotNode.objects.create(
             id=node.get("id"),
-            panorama="/home/nati/Desktop/1674411002858.jpeg",
+            panorama=image,
             virtual_tour=virtual_tour
         )
 
@@ -40,7 +58,7 @@ def create_virtual_tour_object(data, property):
                 width=marker.get("width"),
                 height=marker.get("height"),
                 longitude=Decimal(marker.get("longitude")),
-                latitude=Decimal(marker.get("longitude")),
+                latitude=Decimal(marker.get("latitude")),
                 anchor=marker.get("anchor"),
                 node=hotspot_node
             )

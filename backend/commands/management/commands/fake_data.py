@@ -158,8 +158,9 @@ class Command(BaseCommand):
 
     def seed_facilities(self):
         from properties.models import Facility
-        self.facility_1 = Facility.objects.create(name="Bed rooms")
-        self.facility_2 = Facility.objects.create(name="Square Area")
+        self.facility_1 = Facility.objects.create(name="Bedroom")
+        self.facility_2 = Facility.objects.create(name="Square area")
+        self.facility_2 = Facility.objects.create(name="Bathroom")
 
     def seed_category(self):
         from properties.models import Category
@@ -199,7 +200,7 @@ class Command(BaseCommand):
         )
 
         self.location_1 = PropertyLocation.objects.create(
-            name="Fake Address",
+            street="Fake Address",
             latitude=(fake.latitude()),
             longitude=(fake.longitude()),
             property=self.property_1
@@ -243,7 +244,7 @@ class Command(BaseCommand):
         )
 
         self.location_2 = PropertyLocation.objects.create(
-            name="Fake Address 2",
+            street="Fake Address 2",
             latitude=(fake.latitude()),
             longitude=(fake.longitude()),
             property=self.property_2
@@ -287,7 +288,7 @@ class Command(BaseCommand):
         )
 
         self.location_3 = PropertyLocation.objects.create(
-            name="Fake Address 3",
+            street="Fake Address 3",
             latitude=(fake.latitude()),
             longitude=(fake.longitude()),
             property=self.property_3
@@ -331,7 +332,7 @@ class Command(BaseCommand):
         )
 
         self.location_4 = PropertyLocation.objects.create(
-            name="Fake Address 4",
+            street="Fake Address 4",
             latitude=(fake.latitude()),
             longitude=(fake.longitude()),
             property=self.property_4
@@ -447,13 +448,13 @@ class Command(BaseCommand):
 
         self.hotspot_node = HotspotNode.objects.create(
             id=uuid_4,
-            panorama="/home/nati/Desktop/1674411002858.jpeg",
+            panorama="/panorama_images/1.jpg",
             virtual_tour=self.virtual_tour
         )
 
         self.hotspot_node_2 = HotspotNode.objects.create(
             id=uuid_4_2,
-            panorama="/home/nati/Desktop/1674411002858.jpeg",
+            panorama="/panorama_images/2.jpg",
             virtual_tour=self.virtual_tour
         )
 

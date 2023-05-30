@@ -79,8 +79,10 @@ class PropertyView(
 
         return PropertySerializer
 
-    @action(detail=False, methods=["GET"], name="favorite_properties")
+    @action(detail=False, methods=["GET", "POST"], name="favorite_properties")
     def favorites(self, request):
+        if self.request.method == "POST":
+            pass
         '''
         serializer:
             PropertyItem(
@@ -122,14 +124,18 @@ class PropertyView(
 
     @action(detail=True, methods=["GET", "POST"], name="virtual_tour")
     def virtual_tour(self, request, pk=None):
-        objects = VirtualTour.objects.filter(property=self.get_object())
         if self.request.method == "GET":
-            return Response(VirtualTourSerializer(objects, many=True).data, status=status.HTTP_200_OK)
+          return Response(VirtualTourSerializer(VirtualTour.objects.get(property=self.get_object())).data, status=status.HTTP_200_OK)
 
+        objects = VirtualTour.objects.filter(property=self.get_object())
         if self.request.method == "POST":
+            import json
             from properties.utils import create_virtual_tour_object
-            virtual_tour = create_virtual_tour_object(self.request.data, self.get_object())
+            data = json.loads(self.request.POST["data"])
+            imgs = self.request.POST
+            virtual_tour = create_virtual_tour_object(data, imgs, self.get_object())
             return Response(VirtualTourSerializer(virtual_tour).data, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
 
 # TODO: Property Appointment
