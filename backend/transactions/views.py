@@ -7,9 +7,12 @@ from transactions.models import Transaction
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action, api_view, permission_classes
 from chapa.views import ChapaUtils
-from transactions.utils import TRANSACTION_STATUS
+from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
 from transactions.filters import TransactionFilter
 from users.permissions import CanStartTransaction, UserTypes
+from django.db.models import Q
+from users.serializers import AccountBalanceSerializer
+from users.models import AccountBalance
 
 class TransactionView(viewsets.ModelViewSet):
     serializer_class = TransactionTenantSerializer
@@ -23,10 +26,18 @@ class TransactionView(viewsets.ModelViewSet):
 
     def list(self, request):
         if self.request.user.role == UserTypes.LANDLORD:
-            data = self.get_queryset()
-            return Response({"balance": {"amount" : 55000}, "transactions" : TransactionLandlordSerializer(data, many=True).data})
-            return "sent!"
+            data = self.get_queryset().filter(Q(sender=self.request.user) | Q(receiver=self.request.user))
+            return Response({"balance": AccountBalanceSerializer(AccountBalance.objects.get(user=self.request.user)).data, "transactions" : TransactionLandlordSerializer(data, many=True).data})
         return super().list(request)
+    
+    def create(self, request):
+        if self.request.user.role == UserTypes.LANDLORD:
+            return Response(TransactionSerializer(Transaction.objects.create(
+                sender=self.request.user,
+                amount=self.request.data["amount"],
+                type=TRANSACTION_TYPE.WITHDRAWAL
+            )).data, status=status.HTTP_200_OK)
+        return super().create(request)    
 
     @action(detail=True, methods=["POST"], name="chapa_webhook")
     def chapa_webhook(self, request, pk=None):
@@ -51,3 +62,4 @@ class TransactionView(viewsets.ModelViewSet):
             return Response({"data" : {"checkout_url": transaction.checkout_url}}, status=status.HTTP_200_OK)
         
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    

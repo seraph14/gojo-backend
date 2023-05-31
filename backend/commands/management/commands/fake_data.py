@@ -38,6 +38,8 @@ class Command(BaseCommand):
             is_verified=True
         )
 
+        from users.models import AccountBalance
+        AccountBalance.objects.create(self.landlord)
         self.landlord_test_kidus = User.objects.create_user(
             email="test@landlord.com",
             password="123",
@@ -49,6 +51,7 @@ class Command(BaseCommand):
             is_verified=True
         )
 
+        AccountBalance.objects.create(self.landlord_test_kidus)
         self.landlord_linge = User.objects.create_user(
             email="test@landlord.com",
             password="123123",
@@ -98,13 +101,13 @@ class Command(BaseCommand):
             visiting_hours=[
                 {
                     "day": "Monday",
-                    "from": 9,
-                    "to": 11
+                    "from": "9:00 PM",
+                    "to": "12:00 AM"
                 },
                 {
                     "day": "Tuesday",
-                    "from": 11,
-                    "to": 13
+                    "from": "11:00 AM",
+                    "to": "12:00 AM"
                 }
             ],
             latitude=fake.latitude(),
@@ -162,13 +165,13 @@ class Command(BaseCommand):
             visiting_hours=[
                 {
                     "day": "Monday",
-                    "from": 9,
-                    "to": 11
+                    "from": "9:00 AM",
+                    "to": "11:00 AM"
                 },
                 {
                     "day": "Tuesday",
-                    "from": 11,
-                    "to": 13
+                    "from": "11:00 AM",
+                    "to": "1:00 PM"
                 }
             ],
             title="Test Title",
@@ -218,13 +221,13 @@ class Command(BaseCommand):
             visiting_hours=[
                 {
                     "day": "Monday",
-                    "from": 9,
-                    "to": 11
+                    "from": "9:00 AM",
+                    "to": "11:00 AM"
                 },
                 {
                     "day": "Tuesday",
-                    "from": 11,
-                    "to": 13
+                    "from": "11:00 AM",
+                    "to": "1:00 PM"
                 }
             ],
             title="Test Title 2",
@@ -275,13 +278,13 @@ class Command(BaseCommand):
             visiting_hours=[
                 {
                     "day": "Monday",
-                    "from": 9,
-                    "to": 11
+                    "from": "9:00 AM",
+                    "to": "11:00 AM"
                 },
                 {
                     "day": "Tuesday",
-                    "from": 11,
-                    "to": 13
+                    "from": "11:00 AM",
+                    "to": "1:00 PM"
                 }
             ],
             title="Test Title 3",
@@ -332,13 +335,13 @@ class Command(BaseCommand):
             visiting_hours=[
                 {
                     "day": "Monday",
-                    "from": 9,
-                    "to": 11
+                    "from": "9:00 AM",
+                    "to": "11:00 AM"
                 },
                 {
                     "day": "Tuesday",
-                    "from": 11,
-                    "to": 13
+                    "from": "11:00 AM",
+                    "to": "1:00 PM"
                 }
             ],
             title="Test Title 4",
@@ -596,6 +599,16 @@ class Command(BaseCommand):
     def seed_landlord_transactions(self):
         from transactions.models import Transaction
         from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
+
+        transaction = Transaction.objects.create(
+            sender=self.tenant,
+            receiver=self.landlord_test_kidus,
+            status=TRANSACTION_STATUS.PAID,
+            type=TRANSACTION_TYPE.RENT_PAYMENT,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )
 
         # transaction for pending payment [rent]
         transaction = Transaction.objects.create(

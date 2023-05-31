@@ -36,3 +36,7 @@ class User(AbstractUser, PermissionsMixin):
 class UserVerification(models.Model):
     request_id = models.CharField(max_length=500, null=True)
     user = models.ForeignKey(User, related_name='otp_status', on_delete=models.CASCADE)
+
+class AccountBalance(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="balance")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

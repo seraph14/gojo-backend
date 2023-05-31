@@ -20,4 +20,4 @@ class Application(models.Model):
         return self.tenant.email + " - " + self.property.title
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ["application_date"]

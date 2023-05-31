@@ -5,10 +5,11 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
-from users.models import User, UserVerification
+from users.models import User, UserVerification, AccountBalance
 from users.serializers import UserSerializer
 from users.utilities import UserTypes, send_otp_to_phone, verify_otp
 from users.permissions import *
+
 
 # NOTE: when trying to login you need to use this format
 '''
@@ -38,6 +39,7 @@ class UserRetrieveUpdateListView(
 
     def create(self, request, *args,**kwargs):
         response = super().create(request, *args,**kwargs)
+        # FIXME: create account balance for landlord in here
         try:
             request_id = send_otp_to_phone(request.data["phone"])
             usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))

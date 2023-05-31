@@ -70,5 +70,4 @@ class TransactionLandlordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = '__all__'
         fields = [ "id", "payment_date", "status", "type", "amount" ]

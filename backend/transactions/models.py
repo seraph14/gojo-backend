@@ -22,7 +22,7 @@ class Transaction(models.Model):
     # FIXME: what is the difference between amount and payment_rate
     amount = models.DecimalField(max_digits=6, decimal_places=2)
     tx_ref = models.UUIDField(auto_created=True, default=uuid.uuid4)
-    payment_date = models.DateTimeField(null=True)
+    payment_date = models.DateTimeField(auto_now_add=True)
     
     checkout_url = models.CharField(max_length=500, null=True, blank=True)
 
@@ -36,3 +36,5 @@ class Transaction(models.Model):
     def __str__(self):
         return f'{self.sender} to {self.receiver} - {self.amount}'
 
+    class Meta:
+        ordering = ["-payment_date"]

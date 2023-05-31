@@ -30,7 +30,8 @@ from users.permissions import (
     CanCreateProperty
 )
 from users.serializers import BasicUserSerializer
-
+from reviews.serializers import ReviewSerializer
+from reviews.models import Review
 
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -128,9 +129,20 @@ class PropertyView(
             from properties.utils import create_virtual_tour_object
             data = json.loads(self.request.POST["data"])
             imgs = self.request.POST
+            if VirtualTour.objects.filter(property=self.get_object()).exists():
+                return Response({"message" : "Has a virtual tour!"}, status=status.HTTP_400_BAD_REQUEST)
             virtual_tour = create_virtual_tour_object(
                 data, imgs, self.get_object())
             return Response(VirtualTourSerializer(virtual_tour).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["GET", "POST"], name="virtual_tour")
+    def review(self, request, pk=None):
+        return Response(ReviewSerializer(Review.objects.create(
+            user=self.request.user,
+            rating=self.request.data["rating"],
+            comment=self.request.data["comment"],
+            property=self.get_object()
+        )).data, status=status.HTTP_200_OK)
 
 
 # TODO: Property Appointment

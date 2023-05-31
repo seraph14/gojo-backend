@@ -10,6 +10,7 @@ from applications.models import Application
 from applications.filters import ApplicationFilter
 from applications.utilities import APPLICATION_STATUS
 from users.permissions import IsLandLordOrTenant, IsLandLordOrTenant, IsTenant
+from properties.models import Property
 
 class ApplicationView(viewsets.ModelViewSet):
     queryset =  Application.objects.all()
@@ -23,6 +24,14 @@ class ApplicationView(viewsets.ModelViewSet):
         if self.action == "create":
             return [IsAuthenticated(), IsTenant()]
         return [IsAuthenticated(), IsLandLordOrTenant()]
+
+    def create(self, request):
+        self.request.data["tenant"] = self.request.user.id
+        self.request.data["property"] = self.request.data["property_id"]
+        serializer = ApplicationCreateSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["DELETE"], name="withdraw_application")
     def withdraw(self, request, pk=None):

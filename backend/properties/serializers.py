@@ -18,7 +18,7 @@ from users.serializers import UserSerializer
 from users.models import User
 from users.serializers import UserSerializer, BasicUserSerializer
 from reviews.serializers import ReviewSerializer
-
+from reviews.models import Review
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,7 +62,6 @@ class PropertySerializer(serializers.ModelSerializer):
 
     def get_favorite(self, obj):
         if type(self.context["request"].user) != AnonymousUser:
-            return False
             return Favorites.objects.filter(property=obj,user=self.context["request"].user).exists()
         return True
 

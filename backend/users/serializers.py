@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from users.models import User
+from users.models import User, AccountBalance
 from users.utilities import UserTypes
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,3 +22,9 @@ class BasicUserSerializer(serializers.ModelSerializer):
         model = User 
         fields = ["id", "avatar", "phone", "first_name", "last_name"]
         extra_kwargs = {'id': { 'read_only': True } }
+
+class AccountBalanceSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, coerce_to_string=False)
+    class Meta:
+        model = AccountBalance
+        fields = ["amount"]
