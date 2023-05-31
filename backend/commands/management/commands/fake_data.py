@@ -38,7 +38,7 @@ class Command(BaseCommand):
             is_verified=True
         )
 
-        self.landlord = User.objects.create_user(
+        self.landlord_test_kidus = User.objects.create_user(
             email="test@landlord.com",
             password="123",
             first_name="Kidus",
@@ -46,6 +46,17 @@ class Command(BaseCommand):
             role=UserTypes.LANDLORD,
             is_active=True,
             phone="0972476097",
+            is_verified=True
+        )
+
+        self.landlord_linge = User.objects.create_user(
+            email="test@landlord.com",
+            password="123123",
+            first_name="Lingerew",
+            last_name="Getie",
+            role=UserTypes.LISTING_MANAGER,
+            is_active=True,
+            phone="0943447499",
             is_verified=True
         )
 
@@ -65,50 +76,16 @@ class Command(BaseCommand):
             seen=True,
         )
 
-        # self.seed_property_v2()
-        # self.seed_pending_transactions()
-
         self.seed_facilities()
         self.seed_category()
         self.seed_properties_full()
         self.seed_applications()
         self.seed_appointments()
         self.seed_virtual_tour()
+        self.seed_review()
+        self.seed_landlord_transactions()
 
-        # self.general = User.objects.create_user(
-        #     email="test@general.com",
-        #     password="123123",
-        #     first_name="GeneralManager",
-        #     last_name="Lingerew",
-        #     role=UserTypes.GENERAL_MANAGER,
-        #     is_active=True,
-        #     phone="0943447499",
-        #     # phone_verified=True,
-        # )
-
-        # self.finance = User.objects.create_user(
-        #     email="test@finance.com",
-        #     password="123123",
-        #     first_name="Finance",
-        #     last_name="Nabek",
-        #     role=UserTypes.FINANCIAL_MANAGER,
-        #     is_active=True,
-        #     phone="0915207146",
-        #     # phone_verified=True,
-        # )
-
-        # self.listing = User.objects.create_user(
-        #     email="test@listing.com",
-        #     password="123123",
-        #     first_name="Listing",
-        #     last_name="Lingerew",
-        #     role=UserTypes.LISTING_MANAGER,
-        #     is_active=True,
-        #     phone="0918704962",
-        #     # phone_verified=True,
-        # )
-        # # self.user_attach_images()
-        # self.seed_properties()
+     
 
     def seed_property_v2(self):
         from properties.models import Property
@@ -132,7 +109,8 @@ class Command(BaseCommand):
             ],
             latitude=fake.latitude(),
             longitude=fake.longitude(),
-            amount=8000
+            amount=8000,
+            description="Lorem ipsum lorem ipsum"
         )
 
         self.userRentedProperties = UserRentedProperties.objects.create(
@@ -159,8 +137,8 @@ class Command(BaseCommand):
     def seed_facilities(self):
         from properties.models import Facility
         self.facility_1 = Facility.objects.create(name="Bedroom")
-        self.facility_2 = Facility.objects.create(name="Square area")
         self.facility_2 = Facility.objects.create(name="Bathroom")
+        self.facility_3 = Facility.objects.create(name="Square area")
 
     def seed_category(self):
         from properties.models import Category
@@ -196,7 +174,8 @@ class Command(BaseCommand):
             title="Test Title",
             amount=8000,
             category=self.condo,
-            is_approved=True
+            is_approved=True,
+            description="Lorem ipsum lorem ipsum"
         )
 
         self.location_1 = PropertyLocation.objects.create(
@@ -218,6 +197,17 @@ class Command(BaseCommand):
             count=25
         )
 
+        self.property_1_facility_3 = PropertyFacility.objects.create(
+            property=self.property_1,
+            facility=self.facility_3,
+            count=859
+        )
+        self.userRentedProperties_1 = UserRentedProperties.objects.create(
+            property=self.property_1,
+            start_date="2020-10-10",
+            user=self.tenant,
+            status=PROPERTY_RENT_STATUS.ONGOING
+        )
         self.property_1.facilities.add(
             self.property_1_facility, self.property_1_facility_2)
 
@@ -240,7 +230,8 @@ class Command(BaseCommand):
             title="Test Title 2",
             amount=8000,
             category=self.studio,
-            is_approved=True
+            is_approved=True,
+            description="Lorem ipsum lorem ipsum"
         )
 
         self.location_2 = PropertyLocation.objects.create(
@@ -262,9 +253,21 @@ class Command(BaseCommand):
             count=25
         )
 
-        self.property_2.facilities.add(
-            self.property_1_facility, self.property_2_facility_2)
+        self.property_2_facility_3 = PropertyFacility.objects.create(
+            property=self.property_2,
+            facility=self.facility_3,
+            count=2785
+        )
 
+        self.property_2.facilities.add(
+            self.property_1_facility, self.property_2_facility_2, self.property_2_facility_3)
+
+        # self.userRentedProperties_3 = UserRentedProperties.objects.create(
+        #     property=self.property_2,
+        #     start_date="2020-10-10",
+        #     user=self.tenant,
+        #     status=PROPERTY_RENT_STATUS.ONGOING
+        # )
         # property 3
 
         self.property_3 = Property.objects.create(
@@ -284,7 +287,8 @@ class Command(BaseCommand):
             title="Test Title 3",
             amount=8000,
             category=self.studio,
-            is_approved=True
+            is_approved=True,
+            description="Lorem ipsum lorem ipsum"
         )
 
         self.location_3 = PropertyLocation.objects.create(
@@ -305,9 +309,21 @@ class Command(BaseCommand):
             facility=self.facility_2,
             count=25
         )
+        
+        self.property_3_facility_3 = PropertyFacility.objects.create(
+            property=self.property_3,
+            facility=self.facility_3,
+            count=987
+        )
 
+        # self.userRentedProperties_3 = UserRentedProperties.objects.create(
+        #     property=self.property_3,
+        #     start_date="2020-10-10",
+        #     user=self.tenant,
+        #     status=PROPERTY_RENT_STATUS.ONGOING
+        # )
         self.property_3.facilities.add(
-            self.property_3_facility, self.property_3_facility_2)
+            self.property_3_facility, self.property_3_facility_2, self.property_3_facility_3)
 
         # property 4
 
@@ -328,7 +344,8 @@ class Command(BaseCommand):
             title="Test Title 4",
             amount=8000,
             category=self.studio,
-            is_approved=True
+            is_approved=True,
+            description="Lorem ipsum lorem ipsum"
         )
 
         self.location_4 = PropertyLocation.objects.create(
@@ -350,8 +367,60 @@ class Command(BaseCommand):
             count=25
         )
 
+        self.property_4_facility_3 = PropertyFacility.objects.create(
+            property=self.property_4,
+            facility=self.facility_3,
+            count=500
+        )
+
+        # self.userRentedProperties_4 = UserRentedProperties.objects.create(
+        #     property=self.property_4,
+        #     start_date="2020-10-10",
+        #     user=self.tenant,
+        #     status=PROPERTY_RENT_STATUS.ONGOING
+        # )
         self.property_4.facilities.add(
-            self.property_4_facility, self.property_4_facility_2)
+            self.property_4_facility, self.property_4_facility_2, self.property_4_facility_3)
+        
+        print("================ image upload started ============")
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_1
+        )
+
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_1
+        )
+        
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_1
+        )
+        
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_1
+        )
+        print("============ image upload 1 ==============")
+
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_2
+        )
+        print("============ image upload 2 ==============")
+
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_3
+        )
+        print("============ image upload 3 ==============")
+
+        self.image_1 = PropertyImage.objects.create(
+            image=self.download_image("https://images.pexels.com/photos/4067759/pexels-photo-4067759.jpeg"),
+            property=self.property_4
+        )
+        print("============ image upload 4 ==============")
 
     def seed_applications(self):
         from applications.models import Application
@@ -504,3 +573,54 @@ class Command(BaseCommand):
 
         self.hotspot_node.markers.set([self.marker])
         self.hotspot_node_2.markers.set([self.marker_2])
+
+
+    def download_image(self, url):
+        import requests
+        from django.core.files.base import ContentFile
+        response = requests.get(url)
+        content = response.content
+        file_name = url.split('/')[-1]  # Extract the file name from the URL
+        image_file = ContentFile(content, name=file_name)
+        return image_file
+
+    def seed_review(self):
+        from reviews.models import Review
+        self.review_1 = Review.objects.create(
+            property=self.property_1,
+            user=self.tenant,
+            comment="Te rating data is being fetched",
+            rating=5
+        )
+
+    def seed_landlord_transactions(self):
+        from transactions.models import Transaction
+        from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
+
+        # transaction for pending payment [rent]
+        transaction = Transaction.objects.create(
+            sender=self.landlord_test_kidus,
+            status=TRANSACTION_STATUS.PENDING,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )
+
+        transaction = Transaction.objects.create(
+            sender=self.landlord_test_kidus,
+            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )
+
+        transaction = Transaction.objects.create(
+            sender=self.landlord_test_kidus,
+            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_DENIED,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )

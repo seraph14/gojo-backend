@@ -2,25 +2,31 @@ from django_filters import rest_framework as filters
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from transactions.serializers import TransactionSerializer, TransactionTenantSerializer
+from transactions.serializers import TransactionSerializer, TransactionTenantSerializer, TransactionLandlordSerializer
 from transactions.models import Transaction
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action, api_view, permission_classes
 from chapa.views import ChapaUtils
 from transactions.utils import TRANSACTION_STATUS
 from transactions.filters import TransactionFilter
-from users.permissions import CanStartTransaction
-
+from users.permissions import CanStartTransaction, UserTypes
 
 class TransactionView(viewsets.ModelViewSet):
     serializer_class = TransactionTenantSerializer
     queryset = Transaction.objects.all().prefetch_related("rent_detail")
     lookup_field = 'pk'
-    permission_classes = [ AllowAny ]
+    permission_classes = [ IsAuthenticated ]
 
     # Filters
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = TransactionFilter
+
+    def list(self, request):
+        if self.request.user.role == UserTypes.LANDLORD:
+            data = self.get_queryset()
+            return Response({"balance": {"amount" : 55000}, "transactions" : TransactionLandlordSerializer(data, many=True).data})
+            return "sent!"
+        return super().list(request)
 
     @action(detail=True, methods=["POST"], name="chapa_webhook")
     def chapa_webhook(self, request, pk=None):

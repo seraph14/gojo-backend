@@ -19,6 +19,7 @@ class UserRentedProperties(models.Model):
 class Transaction(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender_transactions')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receiver_transactions', null=True, blank=True)
+    # FIXME: what is the difference between amount and payment_rate
     amount = models.DecimalField(max_digits=6, decimal_places=2)
     tx_ref = models.UUIDField(auto_created=True, default=uuid.uuid4)
     payment_date = models.DateTimeField(null=True)

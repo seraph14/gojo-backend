@@ -42,7 +42,7 @@ class TransactionTenantSerializer(serializers.ModelSerializer):
         return TRANSACTION_STATUS(obj.status).label
 
     def get_type(self, obj):
-        return TRANSACTION_TYPE(obj.status).label
+        return TRANSACTION_TYPE(obj.type).label
 
     class Meta:
         model = Transaction
@@ -57,3 +57,18 @@ class TransactionTenantSerializer(serializers.ModelSerializer):
 
 
 
+
+class TransactionLandlordSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+
+    def get_status(self, obj):
+        return TRANSACTION_STATUS(obj.status).label
+
+    def get_type(self, obj):
+        return TRANSACTION_TYPE(obj.type).label
+
+    class Meta:
+        model = Transaction
+        fields = '__all__'
+        fields = [ "id", "payment_date", "status", "type", "amount" ]

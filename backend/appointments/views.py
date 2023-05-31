@@ -10,6 +10,7 @@ from appointments.models import Appointment
 from appointments.filters import AppointmentFilter
 from appointments.utils import APPOINTMENT_STATUS
 from users.permissions import IsLandLordOrTenant, IsLandLordOrTenant, IsTenant, UserTypes
+from django.contrib.auth.models import AnonymousUser
 
 class AppointmentView(viewsets.ModelViewSet):
     lookup_field = "pk"
@@ -35,7 +36,7 @@ class AppointmentView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             user = self.request.user
-            if user.role in [UserTypes.TENANT, UserTypes.LANDLORD]:
+            if type(user) != AnonymousUser and user.role in [UserTypes.TENANT, UserTypes.LANDLORD]:
                 self.queryset = self.queryset.filter(tenant=user)
 
             return AppointmentViewSerializer

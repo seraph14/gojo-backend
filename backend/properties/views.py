@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.contrib.auth.models import AnonymousUser
 from properties.serializers import (
     PropertyCreateSerializer,
     PropertySerializer,
@@ -12,8 +13,17 @@ from properties.serializers import (
     PropertySerializerForProfile,
     VirtualTourSerializer
 )
-from properties.models import Property, Category, Facility, VirtualTour
+from properties.models import (
+    Property,
+    Category,
+    Facility,
+    VirtualTour,
+    Favorites,
+)
+from transactions.models import UserRentedProperties
+
 from users.permissions import (
+    UserTypes,
     IsLandlord,
     IsManager,
     CanEditPropertyDetail,
@@ -21,12 +31,13 @@ from users.permissions import (
 )
 from users.serializers import BasicUserSerializer
 
+
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     lookup_field = "pk"
-    # permission_classes = [IsManager]
     permission_classes = [AllowAny]
+
 
 class FacilityView(viewsets.ModelViewSet):
     serializer_class = FacilitySerializer
@@ -34,6 +45,7 @@ class FacilityView(viewsets.ModelViewSet):
     lookup_field = "pk"
     # permission_classes = [IsManager]
     permission_classes = [AllowAny]
+
 
 class PropertyView(
     viewsets.ModelViewSet
@@ -74,58 +86,41 @@ class PropertyView(
     def get_serializer_class(self):
         if self.request.method == "POST":
             return PropertyCreateSerializer
+
+        if type(self.request.user) != AnonymousUser and self.request.user.role not in [UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]:
+            self.queryset = Property.objects.filter(is_approved=True)
+
         if self.action == "favorites" or self.action == "rented":
             return PropertySerializerForProfile
 
         return PropertySerializer
 
-    @action(detail=False, methods=["GET", "POST"], name="favorite_properties")
-    def favorites(self, request):
-        if self.request.method == "POST":
-            pass
-        '''
-        serializer:
-            PropertyItem(
-                id: "1",
-                title: "Villa, Kemah Tinggi",
-                thumbnailUrl: Resources.gojoImages.sofaNetwork,
-                category: "Villa",
-                facilities: [
-                    Facility(name: "Kitchen", count: 1),
-                    Facility(name: "Bedroom", count: 2),
-                ],
-                rent: 14000,
-                rating: 4.9,
-            ),        
-        '''
-        # TODO: do the necessary querying
-        return super().list(request)
-
+    @action(detail=True, methods=["PATCH"], name="favorite_properties")
+    def favorite(self, request, pk=None):
+        try:
+            Favorites.objects.get(user=self.request.user, property=self.get_object()).delete()
+            return Response({"message": "removed from favorites"}, status=status.HTTP_200_OK)
+        except Favorites.DoesNotExist:
+            Favorites.objects.create(
+                user=self.request.user,
+                property=self.get_object()
+            )
+            return Response({"message": "saved to favorites"}, status=status.HTTP_200_OK)
+            
     @action(detail=False, methods=["GET"], name="rented_properties")
     def rented(self, request):
-        '''
-        serializer:
-            PropertyItem(
-                id: "1",
-                title: "Villa, Kemah Tinggi",
-                thumbnailUrl: Resources.gojoImages.sofaNetwork,
-                category: "Villa",
-                facilities: [
-                    Facility(name: "Kitchen", count: 1),
-                    Facility(name: "Bedroom", count: 2),
-                ],
-                rent: 14000,
-                rating: 4.9,
-            ),        
-        '''
-        # TODO: do the necessary querying
-        return super().list(request)
+        from transactions.models import PROPERTY_RENT_STATUS
+        data = []
 
+        for rent in UserRentedProperties.objects.filter(user=self.request.user):
+            data.append(rent)
+
+        return Response(self.get_serializer(data, many=True).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["GET", "POST"], name="virtual_tour")
     def virtual_tour(self, request, pk=None):
         if self.request.method == "GET":
-          return Response(VirtualTourSerializer(VirtualTour.objects.get(property=self.get_object())).data, status=status.HTTP_200_OK)
+            return Response(VirtualTourSerializer(VirtualTour.objects.get(property=self.get_object())).data, status=status.HTTP_200_OK)
 
         objects = VirtualTour.objects.filter(property=self.get_object())
         if self.request.method == "POST":
@@ -133,9 +128,9 @@ class PropertyView(
             from properties.utils import create_virtual_tour_object
             data = json.loads(self.request.POST["data"])
             imgs = self.request.POST
-            virtual_tour = create_virtual_tour_object(data, imgs, self.get_object())
+            virtual_tour = create_virtual_tour_object(
+                data, imgs, self.get_object())
             return Response(VirtualTourSerializer(virtual_tour).data, status=status.HTTP_200_OK)
-            return Response(status=status.HTTP_200_OK)
 
 
 # TODO: Property Appointment
@@ -152,5 +147,3 @@ AvailabilityModel(
       )
 '''
 # TODO: 1. cancel appointment
-
-

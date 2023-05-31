@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import AnonymousUser
 from properties.models import (
     Property, 
     PropertyImage, 
@@ -9,7 +10,9 @@ from properties.models import (
     Marker,
     Link,
     HotspotNode,
-    VirtualTour
+    VirtualTour,
+    # this is for favorites
+    Favorites
 )
 from users.serializers import UserSerializer
 from users.models import User
@@ -20,7 +23,7 @@ from reviews.serializers import ReviewSerializer
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
-        fields = ['image']
+        fields = '__all__'
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,14 +50,21 @@ class PropertyFacilitySerializer(serializers.ModelSerializer):
         fields = [ "name", "amount" , "id"]
 
 class PropertySerializer(serializers.ModelSerializer):
-    images = PropertyImageSerializer(many=True, required=False)
     owner = UserSerializer()
+    images = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
     location = PropertyLocationSerializer()
     reviews = ReviewSerializer(many=True)
+    favorite = serializers.SerializerMethodField()
+
+    def get_favorite(self, obj):
+        if type(self.context["request"].user) != AnonymousUser:
+            return False
+            return Favorites.objects.filter(property=obj,user=self.context["request"].user).exists()
+        return True
 
     def get_rating(self, obj):
         # TODO: replace with a valid rating
@@ -63,10 +73,14 @@ class PropertySerializer(serializers.ModelSerializer):
     def get_category(self, obj):    
         return obj.category.name
 
+    def get_images(self, obj):
+        image_serializer = PropertyImageSerializer(obj.images.all(), many=True, context=self.context)
+        return [image['image'] for image in image_serializer.data]
+
     def get_thumbnail_url(self, obj):
-        imgs = obj.images
-        if imgs.count() != 0:
-            return imgs[0]
+        image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
+        if len(image_data.data) != 0:
+            return image_data.data["image"]
         return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
    
     class Meta:

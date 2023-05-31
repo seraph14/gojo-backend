@@ -23,7 +23,8 @@ class Property(models.Model):
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     title = models.CharField(max_length=255, null=True, blank=True)
-
+    description = models.TextField(blank=True)
+    
     is_approved = models.BooleanField(default=False)
     # FIXME: If you have time rename this field to price
     amount = models.DecimalField(max_digits=6, decimal_places=2)
@@ -88,4 +89,4 @@ class Marker(models.Model):
 
 class Favorites(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
