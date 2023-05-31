@@ -9,7 +9,7 @@ from applications.serializers import ApplicationCreateSerializer, ApplicationVie
 from applications.models import Application
 from applications.filters import ApplicationFilter
 from applications.utilities import APPLICATION_STATUS
-from users.permissions import IsLandLordOrTenant, IsLandLordOrTenant, IsTenant
+from users.permissions import IsLandLordOrTenant, IsLandLordOrTenant, IsTenant, UserTypes
 from properties.models import Property
 
 class ApplicationView(viewsets.ModelViewSet):
@@ -19,6 +19,10 @@ class ApplicationView(viewsets.ModelViewSet):
     # Filters
     filter_backends = [DjangoFilterBackend]
     filterset_class = ApplicationFilter
+    
+    def get_queryset(self):
+        # FIXME clean this up for the landlord
+        return Application.objects.filter(tenant=self.request.user)
 
     def get_permissions(self):
         if self.action == "create":

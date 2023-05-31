@@ -26,6 +26,7 @@ class Command(BaseCommand):
             is_verified=True
             # phone_verified=True,
         )
+        
         # self.tenant = User.objects.get(phone="0949024607")
         self.landlord = User.objects.create_user(
             email="test@landlord.com",
