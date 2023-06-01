@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from users.models import User
 from transactions.models import Transaction, UserRentedProperties, PROPERTY_RENT_STATUS
-from properties.serializers import PropertySerializer
+from properties.serializers import PropertySerializer, PropertyImageSerializer
 from users.serializers import BasicUserSerializer
 from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
 class TransactionSerializer(serializers.ModelSerializer):
@@ -34,10 +34,11 @@ class TransactionTenantSerializer(serializers.ModelSerializer):
         return "Test Property Title"
 
     def get_property_image(self, obj):
-        from properties.serializers import PropertyImageSerializer
-        # TODO: you should return the first image as default 
-        # return PropertyImageSerializer(obj.rent_detail.property.images, many=True).data
-        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1DQmUROzymvTvRyFAdXziBoAMC7dSurAvWeBvkOVKQQ&s"
+        # image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
+        # if len(image_data.data) != 0:
+            # return image_data.data["image"]
+        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+   
     def get_status(self, obj):
         return TRANSACTION_STATUS(obj.status).label
 

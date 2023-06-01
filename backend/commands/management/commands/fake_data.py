@@ -39,9 +39,9 @@ class Command(BaseCommand):
             is_verified=True
         )
 
-        # from users.models import AccountBalance
+        from users.models import AccountBalance
 
-        # AccountBalance.objects.create(user=self.landlord)
+        AccountBalance.objects.create(user=self.landlord)
 
         self.landlord_test_kidus = User.objects.create_user(
             email="test@landlord.com",
@@ -54,7 +54,7 @@ class Command(BaseCommand):
             is_verified=True
         )
 
-        # AccountBalance.objects.create(user=self.landlord_test_kidus)
+        AccountBalance.objects.create(user=self.landlord_test_kidus)
         self.landlord_linge = User.objects.create_user(
             email="test@landlord.com",
             password="123123",
@@ -636,6 +636,24 @@ class Command(BaseCommand):
             sender=self.landlord_test_kidus,
             status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_DENIED,
             type=TRANSACTION_TYPE.WITHDRAWAL,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )
+
+        transaction = Transaction.objects.create(
+            sender=self.landlord_test_kidus,
+            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_DENIED,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
+            rent_detail=self.userRentedProperties_1,
+            amount=self.userRentedProperties_1.property.amount,
+            payment_date=self.userRentedProperties_1.start_date
+        )
+
+        transaction = Transaction.objects.create(
+            sender=self.tenant,
+            status=TRANSACTION_STATUS.PENDING,
+            type=TRANSACTION_TYPE.RENT_PAYMENT,
             rent_detail=self.userRentedProperties_1,
             amount=self.userRentedProperties_1.property.amount,
             payment_date=self.userRentedProperties_1.start_date
