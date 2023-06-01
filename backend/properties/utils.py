@@ -79,7 +79,7 @@ def calculate_rating(ratings):
     total = ratings.count()
 
     if total == 0:
-        return 0
+        return 0.0
 
     for rating in ratings:
         sum += rating.rating

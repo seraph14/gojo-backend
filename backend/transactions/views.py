@@ -14,6 +14,7 @@ from users.permissions import CanStartTransaction, UserTypes
 from django.db.models import Q
 from users.serializers import AccountBalanceSerializer
 from users.models import AccountBalance
+from backend.utilities import payment_arrived
 
 class TransactionView(viewsets.ModelViewSet):
     serializer_class = TransactionTenantSerializer
@@ -31,7 +32,7 @@ class TransactionView(viewsets.ModelViewSet):
             return Response({"balance": AccountBalanceSerializer(AccountBalance.objects.get(user=self.request.user)).data, "transactions" : TransactionLandlordSerializer(data, many=True).data})
         if self.request.user.role == UserTypes.TENANT:
             data = self.get_queryset().filter(Q(sender=self.request.user))
-            return Response(TransactionTenantSerializer(data, many=True).data)
+            # return Response(TransactionTenantSerializer(data, many=True).data)
         
         return super().list(request)
     
@@ -50,11 +51,12 @@ class TransactionView(viewsets.ModelViewSet):
         data = request.data
 
         transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
-        if data["status"] == "success":
-            transaction.status = TRANSACTION_STATUS.PAID
-            transaction.save()
-        else:
-            print("======================= payment status is not success =======================")
+        # if data["status"] == "success":
+        #     transaction.status = TRANSACTION_STATUS.PAID
+        #     transaction.save()
+        payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)
+        # else:
+            # print("======================= payment status is not success =======================")
         return Response(data, status=status.HTTP_200_OK)
     
 

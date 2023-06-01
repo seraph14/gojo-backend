@@ -1,3 +1,4 @@
+import os 
 from rest_framework import serializers
 from django.contrib.auth.models import AnonymousUser
 from properties.models import (
@@ -81,7 +82,7 @@ class PropertySerializer(serializers.ModelSerializer):
     def get_thumbnail_url(self, obj):
         image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
         if len(image_data.data) != 0:
-            return image_data.data["image"]
+            return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(image_data.data["image"])
         return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
    
     class Meta:
@@ -140,9 +141,10 @@ class BasicPropertySerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     
     def get_thumbnail_url(self, obj):
-        imgs = obj.images
-        if imgs.count() != 0:
-            return imgs[0]
+        image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
+        if len(image_data.data) != 0:
+            return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(image_data.data["image"])
+
         return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
    
     def get_category(self, obj):    
@@ -161,22 +163,23 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
 
 
     def get_thumbnail_url(self, obj):
-        imgs = obj.images
-        if imgs.count() != 0:
-            return imgs[0]
+        image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
+
+        if image_data.data.get("image", None) and len(image_data.data) != 0:
+            return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(image_data.data["image"])
+
         return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
    
     def get_category(self, obj):    
         return obj.category.name
     
     def get_rating(self, obj):
-        reviews = reviews.reviews
-        # TODO: use two/1 decimal places
+        reviews = obj.reviews.all()
         return calculate_rating(reviews)
     
     class Meta:
         model = Property
-        fields = ["id", "title", "category", "amount", "facilities", "rating", "thumbnail_url"]
+        fields = ["id", "title", "category", "amount", "facilities", "rating", "thumbnail_url", "description"]
         read_only_fields = ("id",)
 
 

@@ -112,7 +112,7 @@ ASGI_APPLICATION = 'backend.asgi.application'
 CORS_ORIGIN_ALLOW_ALL = True
 
 # Firebase initializer
-# FIREBASE_APP = initialize_app(name="gojo-messaging")
+FIREBASE_APP = initialize_app(name="gojo-messaging")
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -193,15 +193,15 @@ CHANNEL_LAYERS = {
 DATA_UPLOAD_MAX_MEMORY_SIZE=8000000000
 FILE_UPLOAD_MAX_MEMORY_SIZE=8000000000
 
-# FCM_DJANGO_SETTINGS = {
+FCM_DJANGO_SETTINGS = {
      # an instance of firebase_admin.App to be used as default for all fcm-django requests
      # default: None (the default Firebase app)
-    # "DEFAULT_FIREBASE_APP": FIREBASE_APP,
+    "DEFAULT_FIREBASE_APP": FIREBASE_APP,
      # default: _('FCM Django')
     # "APP_VERBOSE_NAME": "[string for AppConfig's verbose_name]",
      # true if you want to have only one active device per registered user at a time
      # default: False
-    # "ONE_DEVICE_PER_USER": True/False,
+    "ONE_DEVICE_PER_USER": True,
      # devices to which notifications cannot be sent,
      # are deleted upon receiving error response from FCM
      # default: False
@@ -211,6 +211,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE=8000000000
     # "Update of device with duplicate registration ID" for more details.
     # default: False
     # "UPDATE_ON_DUPLICATE_REG_ID": True/False,
-# }
+}
 
 AUTH_TOKEN_VALIDITY = timedelta(days=2)

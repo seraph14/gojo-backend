@@ -428,6 +428,28 @@ class Command(BaseCommand):
         )
         print("============ image upload 4 ==============")
 
+
+        self.property_5 = Property.objects.create(
+            owner=self.landlord,
+            visiting_hours=[
+                {
+                    "day": "Monday",
+                    "from": "9:00 AM",
+                    "to": "11:00 AM"
+                },
+                {
+                    "day": "Tuesday",
+                    "from": "11:00 AM",
+                    "to": "1:00 PM"
+                }
+            ],
+            title="Test Title 5",
+            amount=8000,
+            category=self.studio,
+            is_approved=False,
+            description="Lorem ipsum lorem ipsum"
+        )
+
     def seed_applications(self):
         from applications.models import Application
         from applications.utilities import APPLICATION_STATUS
@@ -650,11 +672,3 @@ class Command(BaseCommand):
             payment_date=self.userRentedProperties_1.start_date
         )
 
-        transaction = Transaction.objects.create(
-            sender=self.tenant,
-            status=TRANSACTION_STATUS.PENDING,
-            type=TRANSACTION_TYPE.RENT_PAYMENT,
-            rent_detail=self.userRentedProperties_1,
-            amount=self.userRentedProperties_1.property.amount,
-            payment_date=self.userRentedProperties_1.start_date
-        )

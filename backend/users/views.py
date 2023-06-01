@@ -9,6 +9,7 @@ from users.models import User, UserVerification, AccountBalance
 from users.serializers import UserSerializer
 from users.utilities import UserTypes, send_otp_to_phone, verify_otp
 from users.permissions import *
+from fcm_django.models import FCMDevice
 
 
 # NOTE: when trying to login you need to use this format
@@ -70,6 +71,7 @@ class UserRetrieveUpdateListView(
         token = request.data.get("token")
         obj.fb_registration_token = token
         obj.save()
+        data, _ = FCMDevice.objects.get_or_create(registration_id=token, type="android")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
