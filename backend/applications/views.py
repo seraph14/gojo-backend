@@ -21,8 +21,12 @@ class ApplicationView(viewsets.ModelViewSet):
     filterset_class = ApplicationFilter
     
     def get_queryset(self):
-        # FIXME clean this up for the landlord
-        return Application.objects.filter(tenant=self.request.user)
+        queryset = Application.objects.all()
+        if self.request.user.role == UserTypes.LANDLORD:
+            return queryset.filter(property__owner=self.request.user)
+        if self.request.user.role == UserTypes.TENANT:
+            return queryset.filter(tenant=self.request.user)
+        return queryset
 
     def get_permissions(self):
         if self.action == "create":
@@ -47,5 +51,4 @@ class ApplicationView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "list":
             return ApplicationViewSerializer
-        # return ApplicationCreateSerializer
         return ApplicationViewSerializer

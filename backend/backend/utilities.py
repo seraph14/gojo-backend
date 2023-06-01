@@ -11,6 +11,12 @@ def payment_arrived(r_token, user=None):
     )
     return FCMDevice.objects.create(registration_id=r_token, type="android")
 
+def rent_paid(r_token, user=None):
+    data = FCMDevice.objects.send_message(
+        Message(notification=Notification(title="Rent Paid", body=f"You have successfully paid your rent!")), additional_registration_ids=[r_token]
+    )
+    return FCMDevice.objects.create(registration_id=r_token, type="android")
+
 def due_date_arrived(r_token, user=None):
     data = FCMDevice.objects.send_message(
         Message(notification=Notification(title="Due date arrived", body=f"Pay your rent in time!")), additional_registration_ids=[r_token]

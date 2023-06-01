@@ -9,6 +9,5 @@ from reviews.serializers import ReviewSerializer
 
 
 class ReviewView(viewsets.ModelViewSet):
-    # TODO: crete review. filter by property
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer

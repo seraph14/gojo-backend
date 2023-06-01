@@ -19,6 +19,7 @@ from users.models import User
 from users.serializers import UserSerializer, BasicUserSerializer
 from reviews.serializers import ReviewSerializer
 from reviews.models import Review
+from properties.utils import calculate_rating
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,8 +67,9 @@ class PropertySerializer(serializers.ModelSerializer):
         return True
 
     def get_rating(self, obj):
-        # TODO: replace with a valid rating
-        return 4.5
+        reviews = obj.reviews.all()
+        # TODO: use two/1 decimal places
+        return calculate_rating(reviews)
 
     def get_category(self, obj):    
         return obj.category.name
@@ -168,8 +170,9 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
         return obj.category.name
     
     def get_rating(self, obj):
-        # TODO: replace with a valid rating
-        return 4.5
+        reviews = reviews.reviews
+        # TODO: use two/1 decimal places
+        return calculate_rating(reviews)
     
     class Meta:
         model = Property
@@ -201,7 +204,7 @@ class LinkSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 ############### HotspotNode Serializer #################
-
+    
 class HotspotNodeSerializer(serializers.ModelSerializer):
     links = LinkSerializer(many=True)
     markers = MarkerSerializer(many=True)

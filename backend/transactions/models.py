@@ -9,7 +9,7 @@ class PROPERTY_RENT_STATUS(models.IntegerChoices):
     ONGOING = 1, "still renting"
     ENDED = 2, "rent completed"
 
-# TODO: move this to a different file
+# FIXME: move this to a different file
 class UserRentedProperties(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_renter")
     start_date = models.DateField()

@@ -74,6 +74,15 @@ class PropertyView(
         instance = serializer.save()
         property_serializer = PropertySerializer(instance)
         self.request._property_data = property_serializer.data
+    
+    def list(self, request):
+        if type(self.request.user) != AnonymousUser and self.request.user.role == UserTypes.LANDLORD:
+            return Response(PropertySerializerForProfile(Property.objects.filter(is_approved=True, owner=self.request.user), many=True).data)
+
+        if type(self.request.user) != AnonymousUser and self.request.user.role not in [UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]:
+            self.queryset = Property.objects.filter(is_approved=True)
+
+        return super().list(request)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -87,9 +96,6 @@ class PropertyView(
     def get_serializer_class(self):
         if self.request.method == "POST":
             return PropertyCreateSerializer
-
-        if type(self.request.user) != AnonymousUser and self.request.user.role not in [UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]:
-            self.queryset = Property.objects.filter(is_approved=True)
 
         if self.action == "favorites" or self.action == "rented":
             return PropertySerializerForProfile

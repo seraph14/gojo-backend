@@ -72,3 +72,16 @@ def create_virtual_tour_object(data, imgs, property):
     virtual_tour.hotspotNodes.set(nodes)
 
     return virtual_tour
+
+
+def calculate_rating(ratings):
+    sum = 0
+    total = ratings.count()
+
+    if total == 0:
+        return 0
+
+    for rating in ratings:
+        sum += rating.rating
+
+    return sum/total

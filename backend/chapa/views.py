@@ -6,9 +6,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
 from users.models import User
+from properties.models import Property
 from users.serializers import UserSerializer
 from users.utilities import UserTypes
 from users.permissions import *
+from transactions.models import Transaction
+from backend.utilities import payment_arrived, rent_paid
 
 class ChapaUtils:
     CHAPA_PUBLIC = os.environ.get("CHAPA_TEST_PUBLIC_KEY", "chapa_public")
@@ -37,17 +40,16 @@ class ChapaUtils:
         )
         return request.json()
 
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def get_chapa_checkout_url(request):
-    response = (ChapaUtils.initialize(500, "se.natnael.abay@gmail.com", "TestNatnael", "AsbayTest","wewsdqwsadasdeqweqw"))
-    if response["status"] == "success":
-        return Response(response, status=status.HTTP_200_OK)
-    return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def verify_payment_status(request):
-    pass
+    tx_ref = "Proper"
+    request = requests.get(ChapaUtils.CHAPA_TRANSACTIONS_URL + f"verify/{tx_ref}", headers=ChapaUtils.headers)
+    data = request.json()
+    if data["status"] == "success":
+        transaction = Transaction.objects.get(tx_ref=tx_ref)
+        
+        rent_paid(r_token)
+
+        payment_arrived(r_token)
+        return Response()

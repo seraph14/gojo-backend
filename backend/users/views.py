@@ -39,7 +39,7 @@ class UserRetrieveUpdateListView(
 
     def create(self, request, *args,**kwargs):
         response = super().create(request, *args,**kwargs)
-        # FIXME: create account balance for landlord in here
+
         try:
             request_id = send_otp_to_phone(request.data["phone"])
             usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))
@@ -94,7 +94,8 @@ def verify_otp_view(request):
         verify_otp(user_ver.request_id, code) # to verify we need the otp and the request_id [this could be specific to vonage]
         user.is_verified = True 
         user.save()
-        # TODO: delete otp verification
+        print("============ deleting otp record ===========")
+        user.otp_status.delete()
         return Response({"message": "Phone number verified!"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({ "message": "Otp verification failed" }, status=status.HTTP_400_BAD_REQUEST)
@@ -108,6 +109,12 @@ def resend_otp(request):
     phone = request.data["phone"]
     
     try:
+        user = User.objects.get(phone=phone)
+        if user.is_verified:
+            print("============== delete otp record if any because it is already verified =================")
+            user.otp_status.delete()
+            return Response({"message" : "User is Already Phone number"}, status=status.HTTP_400_BAD_REQUEST)
+        
         request_id = send_otp_to_phone(phone)
     except Exception as e:
         print("================= resend verification ======= ", e)
@@ -120,7 +127,6 @@ def resend_otp(request):
     return Response({"message": "OTP resent"}, status=status.HTTP_200_OK)
 
 
-# TODO: separate the endpoints for admin, landlord and tenant
 class CustomTenantAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
@@ -151,6 +157,10 @@ class CustomLandlordAuthToken(ObtainAuthToken):
         token, created = Token.objects.get_or_create(user=user,)
         usr_data = UserSerializer(user).data
         usr_data["token"] = token.key
+
+        account_balance = AccountBalance.objects.get_or_create(
+            user=user,
+        )        
 
         return Response({
             'user': usr_data 
