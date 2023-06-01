@@ -141,6 +141,9 @@ class PropertyView(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["PATCH"], name="favorite_properties")
     def favorite(self, request, pk=None):
+        if self.request.method == "GET":
+            properties = self.request.user.favorites
+            return Response({"results": PropertySerializerForProfile(properties, many=True).data})
         try:
             Favorites.objects.get(
                 user=self.request.user, property=self.get_object()
@@ -153,7 +156,16 @@ class PropertyView(viewsets.ModelViewSet):
             return Response(
                 {"message": "saved to favorites"}, status=status.HTTP_200_OK
             )
-
+    
+    @action(detail=False, methods=["GET"], name="favorite_properties")
+    def favorites(self, request, pk=None):
+        favorites = self.request.user.favorites.all()
+        properties = []
+        for property in favorites:
+            properties.append(property.property)
+        return Response({"results": PropertySerializerForProfile(properties, many=True).data})
+    
+    
     @action(detail=False, methods=["GET"], name="rented_properties")
     def rented(self, request):
         from transactions.models import PROPERTY_RENT_STATUS
@@ -161,10 +173,10 @@ class PropertyView(viewsets.ModelViewSet):
         data = []
 
         for rent in UserRentedProperties.objects.filter(user=self.request.user):
-            data.append(rent)
+            data.append(rent.property)
 
         return Response(
-            self.get_serializer(data, many=True).data, status=status.HTTP_200_OK
+            { "results" : self.get_serializer(data, many=True).data }, status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=["GET", "POST"], name="virtual_tour")

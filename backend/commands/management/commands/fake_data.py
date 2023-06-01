@@ -156,7 +156,7 @@ class Command(BaseCommand):
         self.warehouse = Category.objects.create(name="Warehouse")
 
     def seed_properties_full(self):
-        from properties.models import Property, Category, Facility, PropertyFacility, PropertyLocation
+        from properties.models import Property, Category, Facility, PropertyFacility, PropertyLocation, Favorites
         from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
         from faker import Faker
         fake = Faker()
@@ -184,6 +184,10 @@ class Command(BaseCommand):
             description="Lorem ipsum lorem ipsum"
         )
 
+        (Favorites.objects.create(
+            property=self.property_1,
+            user=self.tenant
+        ))
         self.location_1 = PropertyLocation.objects.create(
             street="Fake Address",
             latitude=(fake.latitude()),
