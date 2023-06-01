@@ -1,6 +1,6 @@
 FROM python:3.8
 
-WORKDIR /home/se_natnael_abay/app
+WORKDIR /app
 
 COPY requirements.txt .
 
