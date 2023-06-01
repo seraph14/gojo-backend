@@ -40,7 +40,9 @@ class Command(BaseCommand):
         )
 
         from users.models import AccountBalance
-        AccountBalance.objects.create(self.landlord)
+
+        AccountBalance.objects.create(user=self.landlord)
+
         self.landlord_test_kidus = User.objects.create_user(
             email="test@landlord.com",
             password="123",
@@ -52,7 +54,7 @@ class Command(BaseCommand):
             is_verified=True
         )
 
-        AccountBalance.objects.create(self.landlord_test_kidus)
+        AccountBalance.objects.create(user=self.landlord_test_kidus)
         self.landlord_linge = User.objects.create_user(
             email="test@landlord.com",
             password="123123",
