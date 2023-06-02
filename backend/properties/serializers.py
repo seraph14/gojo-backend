@@ -137,6 +137,14 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
 
         return property_instance
 
+    def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', [])
+        instance = super().update(instance, validated_data)
+
+        for image_data in images_data:
+            PropertyImage.objects.create(property=instance, image=image_data)
+
+        return instance
 
 class BasicPropertySerializer(serializers.ModelSerializer):
     category = serializers.SerializerMethodField()
@@ -197,7 +205,7 @@ class MarkerSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         import os
-        return os.environ.get("DOMAIN", "http://localhost:8000", ) + "/panorama_images/marker.png"
+        return os.environ.get("DOMAIN", "http://localhost:8000", ) + "panorama_images/marker.png"
 
     class Meta:
         model = Marker
