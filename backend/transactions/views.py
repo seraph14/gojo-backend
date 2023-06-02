@@ -47,16 +47,15 @@ class TransactionView(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["POST"], name="chapa_webhook", )
     def verify_payment_status(self, request, pk=None):
-        # TODO: tj
         data = request.data
 
         transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
-        # if data["status"] == "success":
-        #     transaction.status = TRANSACTION_STATUS.PAID
-        #     transaction.save()
-        payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)
-        # else:
-            # print("======================= payment status is not success =======================")
+        if data["status"] == "success":
+            transaction.status = TRANSACTION_STATUS.PAID
+            transaction.save()
+            payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)
+        else:
+            print("======================= payment status is not success =======================")
         return Response(data, status=status.HTTP_200_OK)
     
 
