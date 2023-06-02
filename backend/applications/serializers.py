@@ -1,7 +1,7 @@
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
-from applications.models import Application
+from applications.models import Application, Contract
 from applications.utilities import APPLICATION_STATUS
 from users.serializers import BasicUserSerializer
 

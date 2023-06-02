@@ -47,8 +47,8 @@ class MessageViewSerializer(serializers.ModelSerializer):
 
 class ThreadSerializer(serializers.ModelSerializer):
     messages = serializers.SerializerMethodField()
-    tenant = BasicUserSerializer(source="user_1")
-    landlord = BasicUserSerializer(source="user_2")
+    tenant = BasicUserSerializer()
+    landlord = BasicUserSerializer()
     unseen_count = serializers.SerializerMethodField()
 
     def get_unseen_count(self, obj):

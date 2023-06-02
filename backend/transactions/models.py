@@ -17,7 +17,7 @@ class UserRentedProperties(models.Model):
     status = models.IntegerField(default=PROPERTY_RENT_STATUS.ONGOING, choices=PROPERTY_RENT_STATUS.choices)
 
 class Transaction(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender_transactions')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender_transactions', null=True)
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receiver_transactions', null=True, blank=True)
     # FIXME: what is the difference between amount and payment_rate
     amount = models.DecimalField(max_digits=6, decimal_places=2)
@@ -30,6 +30,8 @@ class Transaction(models.Model):
     rent_detail = models.ForeignKey(UserRentedProperties, on_delete=models.CASCADE, related_name="transactions", null=True, blank=True)
     type = models.IntegerField(default=TRANSACTION_TYPE.RENT_PAYMENT, choices=TRANSACTION_TYPE.choices)
     
+    bank_detail = models.JSONField(default=dict)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

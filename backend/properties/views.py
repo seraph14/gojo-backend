@@ -13,6 +13,7 @@ from properties.serializers import (
     FacilitySerializer,
     PropertySerializerForProfile,
     VirtualTourSerializer,
+    PropertyUpdateAdminSerializer,
 )
 from properties.models import (
     Property,
@@ -36,7 +37,7 @@ from users.permissions import (
 from users.serializers import BasicUserSerializer
 from reviews.serializers import ReviewSerializer
 from reviews.models import Review
-
+from properties.filters import PropertyFilter
 
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -49,13 +50,13 @@ class FacilityView(viewsets.ModelViewSet):
     serializer_class = FacilitySerializer
     queryset = Facility.objects.all()
     lookup_field = "pk"
-    # permission_classes = [IsManager]
     permission_classes = [AllowAny]
 
 
 class PropertyView(viewsets.ModelViewSet):
     queryset = Property.objects.all().prefetch_related("images")
     lookup_field = "pk"
+    filter_backends = [ PropertyFilter ]
 
     def get_permissions(self):
         if self.action == "list" or self.action == "retrieve":
@@ -83,10 +84,7 @@ class PropertyView(viewsets.ModelViewSet):
 
     def list(self, request):
         t = request.query_params.get("type", None)
-        if (
-            getattr(self.request, "user", None)
-            and type(self.request.user) != AnonymousUser
-        ):
+        if self.request.users.is_authenticated:
             if t == "rented":
                 rented_properties = UserRentedProperties.objects.filter(
                     status=PROPERTY_RENT_STATUS.ONGOING,
@@ -96,29 +94,18 @@ class PropertyView(viewsets.ModelViewSet):
                 property_ids = [
                     rented_property["property"] for rented_property in rented_properties
                 ]
+
                 data = Property.objects.filter(id__in=property_ids)
-                return Response(
-                    {"results": PropertySerializerForProfile(data, many=True).data}
-                )
             elif t == "posted":
                 data = Property.objects.filter(
                     owner=self.request.user, is_approved=True
-                )
-                return Response(
-                    {"results": PropertySerializerForProfile(data, many=True).data}
                 )
             elif t == "in_review":
                 data = Property.objects.filter(
                     owner=self.request.user, is_approved=False
                 )
-                return Response(
-                    {"results": PropertySerializerForProfile(data, many=True).data}
-                )
             else:
-                if (
-                    type(self.request.user) != AnonymousUser
-                    and self.request.user.role == UserTypes.LANDLORD
-                ):
+                if self.request.user.role == UserTypes.LANDLORD:
                     return Response(
                         PropertySerializerForProfile(
                             Property.objects.filter(
@@ -127,15 +114,11 @@ class PropertyView(viewsets.ModelViewSet):
                             many=True,
                         ).data
                     )
-
-                if type(
-                    self.request.user
-                ) != AnonymousUser and self.request.user.role not in [
-                    UserTypes.LISTING_MANAGER,
-                    UserTypes.GENERAL_MANAGER,
-                ]:
-                    self.queryset = Property.objects.filter(is_approved=True)
-
+            return Response(
+                {"results": PropertySerializerForProfile(data, many=True).data}
+            )
+        else:
+            self.queryset = Property.objects.filter(is_approved=True)
         return super().list(request)
 
     def create(self, request, *args, **kwargs):
@@ -149,7 +132,7 @@ class PropertyView(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == "POST" or self.request.method == "PATCH":
-            return PropertyCreateSerializer
+            return PropertyUpdateAdminSerializer
 
         if self.action == "favorites" or self.action == "rented":
             return PropertySerializerForProfile
@@ -221,6 +204,7 @@ class PropertyView(viewsets.ModelViewSet):
             from properties.utils import create_virtual_tour_object
 
             data = json.loads(self.request.POST["data"])
+
             imgs = self.request.POST
 
             virtual_tour = create_virtual_tour_object(data, imgs, self.get_object())
@@ -261,13 +245,15 @@ class PropertyView(viewsets.ModelViewSet):
         appointment = Appointment.objects.filter(
             property__id=self.request.data["property"], tenant=self.request.user
         )
-        
+
         if appointment.exists():
             self.request.data["status"] = APPOINTMENT_STATUS.PENDING
-            serializer = AppointmentCreateSerializer(appointment.first(), self.request.data)
+            serializer = AppointmentCreateSerializer(
+                appointment.first(), self.request.data
+            )
         else:
             serializer = AppointmentCreateSerializer(data=self.request.data)
-        
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(

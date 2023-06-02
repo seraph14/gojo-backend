@@ -3,8 +3,8 @@ from users.models import User
 
 
 class Thread(models.Model):
-    user_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_as_user_1")
-    user_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="chat_as_user_2")
+    tenant = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tenant_threads")
+    landlord = models.ForeignKey(User, on_delete=models.CASCADE, related_name="landlord_threads")
 
 class Message(models.Model):
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name="messages")

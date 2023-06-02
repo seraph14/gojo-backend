@@ -17,8 +17,8 @@ class ChatView(
 
     def get_queryset(self):
         if self.action == "list":
-            return Thread.objects.filter(user_1=self.request.user).union(
-                Thread.objects.filter(user_2=self.request.user)
+            return Thread.objects.filter(tenant=self.request.user).union(
+                Thread.objects.filter(landlord=self.request.user)
             )
         return super().get_queryset()
 
@@ -29,8 +29,8 @@ class ChatView(
         # Create a thread
         message = Message.objects.create(
             thread=Thread.objects.create(
-                user_1=user,
-                user_2=data["to"]
+                tenant=user,
+                landlord=data["to"]
             ),
             sender=user,
             content=data["message"],

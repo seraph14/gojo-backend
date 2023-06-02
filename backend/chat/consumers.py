@@ -31,7 +31,7 @@ class ChatConsumer(AsyncConsumer):
 
     async def websocket_receive(self, event): # websocket.receive
         data =  json.loads(event["text"])
-        message_data ={"message" : (data['message'])}
+        message_data ={"message" : (data['content'])}
         self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
         self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
         message_data["sender"] = self.sender_user_id
@@ -64,14 +64,14 @@ class ChatConsumer(AsyncConsumer):
     @database_sync_to_async
     def get_thread(self, s_user_id, r_user_id):
         try:
-            return Thread.objects.get(user_1__id=s_user_id, user_2__id=r_user_id)
+            return Thread.objects.get(landlord__id=s_user_id, tenant__id=r_user_id)
         except Thread.DoesNotExist:
             pass
         try:
-            return Thread.objects.get(user_2__id=s_user_id,user_1__id=r_user_id)
+            return Thread.objects.get(tenant__id=s_user_id,landlord__id=r_user_id)
         except Thread.DoesNotExist:
             pass
-        return Thread.objects.create(user_1=User.objects.get(id=s_user_id), user_2=User.objects.get(id=r_user_id))
+        return Thread.objects.create(tenant=User.objects.get(id=s_user_id), landlord=User.objects.get(id=r_user_id))
 
 
     @database_sync_to_async

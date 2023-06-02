@@ -55,6 +55,13 @@ class ApplicationView(viewsets.ModelViewSet):
         obj.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=["DELETE"], name="withdraw_application")
+    def applications(self, request, pk=None):
+        obj = self.get_object()
+        obj.status = APPLICATION_STATUS.WITHDRAWN
+        obj.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def get_serializer_class(self):
         if self.action == "list":
             return ApplicationViewSerializer

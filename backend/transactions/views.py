@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from django_filters import rest_framework as filters
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -100,3 +101,21 @@ class TransactionView(viewsets.ModelViewSet):
             return Response(response, status=status.HTTP_200_OK)
     
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["POST"], name="request_withdraw", )
+    def withdraw(self, request, pk=None):
+        balance = AccountBalance.objects.get(user=self.request.user)
+        if balance.amount < self.request.data.get("amount", 0):
+            return Response({"message" : "Insufficient balance!"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        transaction = Transaction.objects.create(
+
+            receiver=self.request.user,
+            amount=Decimal(self.request.data["amount"]),
+            status=TRANSACTION_STATUS.PENDING,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
+            bank_detail=self.request.data["bank"]   
+        )
+
+        balance.amount -= Decimal(self.request.data["amount"]) 
+        return Response(status=status.HTTP_200_OK)

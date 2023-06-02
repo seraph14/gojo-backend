@@ -32,6 +32,13 @@ class AppointmentView(viewsets.ModelViewSet):
         obj.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=["POST"], name="approve_appointment")
+    def approve(self, request, pk=None):
+        obj = self.get_object()
+        obj.status = APPOINTMENT_STATUS.APPROVED
+        obj.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
     def get_serializer_class(self):
         if self.action == "list":

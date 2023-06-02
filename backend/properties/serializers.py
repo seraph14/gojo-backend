@@ -21,6 +21,8 @@ from users.serializers import UserSerializer, BasicUserSerializer
 from reviews.serializers import ReviewSerializer
 from reviews.models import Review
 from properties.utils import calculate_rating
+from chat.models import Thread
+from chat.serializers import ThreadSerializer
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,6 +63,16 @@ class PropertySerializer(serializers.ModelSerializer):
     location = PropertyLocationSerializer()
     reviews = ReviewSerializer(many=True)
     favorite = serializers.SerializerMethodField()
+    messages = serializers.SerializerMethodField()
+
+    def get_messages(self, obj):
+        request = self.context["request"]
+        if request.user.is_authenticated:
+            thread =Thread.objects.filter(tenant=request.user, landlord=obj.owner)
+            if thread.exists():
+                serializer = ThreadSerializer(thread.first(), context=self.context)
+                return serializer.data["messages"]
+        return {"messages": []}
 
     def get_favorite(self, obj):
         if type(self.context["request"].user) != AnonymousUser:
@@ -69,7 +81,6 @@ class PropertySerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         reviews = obj.reviews.all()
-        # TODO: use two/1 decimal places
         return calculate_rating(reviews)
 
     def get_category(self, obj):    
@@ -92,6 +103,19 @@ class PropertySerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("id",)
 
+class PropertyUpdateAdminSerializer(serializers.ModelSerializer):
+    
+    def update(self, instance, validated_data):
+        images_data = self.context["request"].data.get('images', [])
+        instance = super().update(instance, validated_data)
+
+        for image_data in images_data:
+            PropertyImage.objects.create(property=instance, image=image_data)
+
+        return instance
+    class Meta:
+        model = Property
+        fields = "__all__"
 
 class PropertyCreateSerializer(serializers.ModelSerializer):
     facilities = PropertyFacilitySerializer(many=True)

@@ -30,8 +30,8 @@ class Command(BaseCommand):
         self.landlord = User.objects.create_user(
             email="test@landlord.com",
             password="123",
-            first_name="Natnael",
-            last_name="Abay",
+            first_name="LandlordTesting",
+            last_name="Yes",
             role=UserTypes.LANDLORD,
             is_active=True,
             phone="0918012730",
@@ -70,14 +70,21 @@ class Command(BaseCommand):
         from chat.models import Message, Thread
 
         thread = Thread.objects.create(
-            user_1=self.tenant,
-            user_2=self.landlord
+            tenant=self.tenant,
+            landlord=self.landlord
         )
 
         chat = Message.objects.create(
             thread=thread,
-            content="This is a fake message! and the landlords side!",
+            content="This ia ma message from the landlord!",
             sender=self.landlord,
+            seen=True,
+        )
+
+        chat = Message.objects.create(
+            thread=thread,
+            content="This ia a message from the tenant!",
+            sender=self.tenant,
             seen=True,
         )
 
