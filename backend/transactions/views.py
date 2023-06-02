@@ -8,7 +8,7 @@ from transactions.models import Transaction
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action, api_view, permission_classes
 from chapa.views import ChapaUtils
-from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE
+from transactions.utils import TRANSACTION_STATUS, TRANSACTION_TYPE, validate_withdrawal_request
 from transactions.filters import TransactionFilter
 from users.permissions import CanStartTransaction, UserTypes
 from django.db.models import Q
@@ -87,8 +87,16 @@ class TransactionView(viewsets.ModelViewSet):
         
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=["POST"], name="chapa_webhook", )
+    @action(detail=True, methods=["POST"], name="chapa_webhook", )
     def release_fund(self, request, pk=None):
-        
-        return Response(data, status=status.HTTP_200_OK)
+        withdrawal_request = self.get_object()
+        if not validate_withdrawal_request(withdrawal_request):
+            return Response({"message": "Unable to approve request!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        response = ChapaUtils.transfer(
+            withdrawal_request
+        )
+        if response["status"] == "success":
+            return Response(response, status=status.HTTP_200_OK)
     
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)

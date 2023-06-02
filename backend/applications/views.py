@@ -36,7 +36,14 @@ class ApplicationView(viewsets.ModelViewSet):
     def create(self, request):
         self.request.data["tenant"] = self.request.user.id
         self.request.data["property"] = self.request.data["property_id"]
-        serializer = ApplicationCreateSerializer(data=self.request.data)
+        application = Application.objects.filter(
+            property__id=self.request.data["property_id"], tenant=self.request.user
+        )
+        if application.exists():
+            self.request.data["status"] = APPLICATION_STATUS.PENDING
+            serializer = ApplicationCreateSerializer(application.first(), data=self.request.data)
+        else: 
+            serializer = ApplicationCreateSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -8,3 +8,6 @@ class Appointment(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE)
     tenant = models.ForeignKey(User, on_delete=models.CASCADE)
     appointment_date = models.DateTimeField()
+    
+    class Meta:
+        ordering = ["-appointment_date"]

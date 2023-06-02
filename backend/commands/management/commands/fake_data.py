@@ -24,7 +24,6 @@ class Command(BaseCommand):
             is_active=True,
             phone="0949024607",
             is_verified=True
-            # phone_verified=True,
         )
         
         # self.tenant = User.objects.get(phone="0949024607")

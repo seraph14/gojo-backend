@@ -9,13 +9,18 @@ def create_virtual_tour_object(data, imgs, property):
     import imghdr
     import base64
 
-    default_view_position = (data["defaultViewPosition"]) 
-    virtual_tour = VirtualTour.objects.create(
-        property=property,
-        defaultViewPosition_latitude=Decimal(default_view_position.get("latitude")),
-        defaultViewPosition_longitude=Decimal(default_view_position.get("longitude")),
-        initialView=data.get("initialView", None)
-    )
+    default_view_position = (data["defaultViewPosition"])
+    virtual_tour = VirtualTour.objects.filter(property=property)
+    if virtual_tour.exists():
+        virtual_tour = tour.first()
+        virtual_tour.hotspotNodes.delete()
+    else:
+        virtual_tour = VirtualTour.objects.create(
+            property=property,
+            defaultViewPosition_latitude=Decimal(default_view_position.get("latitude")),
+            defaultViewPosition_longitude=Decimal(default_view_position.get("longitude")),
+            initialView=data.get("initialView", None)
+        )
 
     nodes = []
     hotspot_nodes = (data.get("hotspotNodes"))

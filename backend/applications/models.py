@@ -9,10 +9,8 @@ class Application(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="applications")
     possible_start_date = models.DateField()
     how_long = models.IntegerField(default=1)
-
     status = models.IntegerField(default=APPLICATION_STATUS.PENDING, choices=APPLICATION_STATUS.choices)
     description = models.TextField()
-    
     application_date = models.DateField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

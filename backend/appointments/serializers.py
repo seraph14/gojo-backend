@@ -19,7 +19,7 @@ class AppointmentViewSerializer(serializers.ModelSerializer):
     # tenant = BasicUserSerializer()
     
     # property = PropertySerializer()
-    date = serializers.DateTimeField(format="%b %d, %H:%M", source="appointment_date")
+    date = serializers.DateTimeField(format="%b %d, %I:%M %p", source="appointment_date")
 
     landlord_phone = serializers.SerializerMethodField()
     landlord_full_name = serializers.SerializerMethodField()

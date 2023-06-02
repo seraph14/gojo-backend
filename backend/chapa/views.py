@@ -39,6 +39,22 @@ class ChapaUtils:
             headers=self.headers
         )
         return request.json()
+ 
+    @classmethod
+    def transfer(self,transaction, **kwargs):
+        request = requests.post(
+            self.CHAPA_TRANSACTIONS_URL + 'transfers', json={
+                "amount": str(transaction.amount),
+                "account_name": transaction.sender.full_name,
+                "account_number": "88649141",
+                "beneficiary_name" : "For property Rental man",
+                "currency" : "ETB",
+                "bank_code": "ABYSETAA",
+                "reference": ref,
+            },
+            headers=self.headers
+        )
+        return request.json()
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
