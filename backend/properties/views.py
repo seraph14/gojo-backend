@@ -133,7 +133,10 @@ class PropertyView(viewsets.ModelViewSet):
         return Response(data, status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
-        if self.request.method == "POST" or self.request.method == "PATCH":
+        if self.request.method == "POST":
+            return PropertyCreateSerializer
+            
+        if self.request.method == "PATCH":
             return PropertyUpdateAdminSerializer
 
         if self.action == "favorites" or self.action == "rented":

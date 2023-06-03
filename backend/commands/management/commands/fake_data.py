@@ -591,10 +591,10 @@ class Command(BaseCommand):
     def download_image(self, url):
         import requests
         from django.core.files.base import ContentFile
+        import uuid
         response = requests.get(url)
         content = response.content
-        file_name = url.split('/')[-1]  # Extract the file name from the URL
-        image_file = ContentFile(content, name=file_name)
+        image_file = ContentFile(content, name=str(uuid.uuid4()))
         return image_file
 
     def seed_review(self):
