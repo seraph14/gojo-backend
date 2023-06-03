@@ -265,19 +265,3 @@ class PropertyView(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_200_OK,
         )
-
-
-# TODO: Property Appointment
-# TODO: 1. schedule appointment
-# The appointment data is going to be like this:
-"""
-AvailabilityModel(
-        days: [1, 2, 3, 4, 5],
-        timeSlots: {
-          "1": ["10:00 AM", "11:00 AM", "12:00 AM"],
-          "2": ["10:00 AM", "11:00 AM", "12:00 AM"],
-          "3": ["9:00 AM", "11:00 AM", "12:00 AM"],
-        },
-      )
-"""
-# TODO: 1. cancel appointment
