@@ -6,7 +6,6 @@ from users.utilities import UserTypes
 
 class User(AbstractUser, PermissionsMixin):
     username = None
-    # email = models.EmailField(_("email address"), unique=True)
     first_name = models.CharField(_("first name"), max_length=150)
     last_name = models.CharField(_("last name"), max_length=150)
     role = models.IntegerField(choices=UserTypes.choices, default=UserTypes.TENANT)

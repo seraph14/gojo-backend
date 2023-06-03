@@ -64,6 +64,7 @@ class PropertySerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True)
     favorite = serializers.SerializerMethodField()
     messages = serializers.SerializerMethodField()
+    amount = serializers.DecimalField(max_digits=30, decimal_places=2,)
 
     def get_messages(self, obj):
         request = self.context["request"]
@@ -105,14 +106,14 @@ class PropertySerializer(serializers.ModelSerializer):
 
 class PropertyUpdateAdminSerializer(serializers.ModelSerializer):
     
-    def update(self, instance, validated_data):
-        images_data = self.context["request"].data.get('images', [])
-        instance = super().update(instance, validated_data)
+    # def update(self, instance, validated_data):
+    #     images_data = self.context["request"].data.get('images', [])
+    #     instance = super().update(instance, validated_data)
 
-        for image_data in images_data:
-            PropertyImage.objects.create(property=instance, image=image_data)
+    #     for image_data in images_data:
+    #         PropertyImage.objects.create(property=instance, image=image_data)
 
-        return instance
+        # return instance
     class Meta:
         model = Property
         fields = "__all__"

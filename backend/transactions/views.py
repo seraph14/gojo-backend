@@ -37,14 +37,14 @@ class TransactionView(viewsets.ModelViewSet):
         
         return super().list(request)
     
-    def create(self, request):
-        if self.request.user.role == UserTypes.LANDLORD:
-            return Response(TransactionSerializer(Transaction.objects.create(
-                sender=self.request.user,
-                amount=self.request.data["amount"],
-                type=TRANSACTION_TYPE.WITHDRAWAL
-            )).data, status=status.HTTP_200_OK)
-        return super().create(request)    
+    # def create(self, request):
+    #     if self.request.user.role == UserTypes.LANDLORD:
+    #         return Response(TransactionSerializer(Transaction.objects.create(
+    #             sender=self.request.user,
+    #             amount=self.request.data["amount"],
+    #             type=TRANSACTION_TYPE.WITHDRAWAL
+    #         )).data, status=status.HTTP_200_OK)
+    #     return super().create(request)    
 
     @action(detail=False, methods=["POST"], name="chapa_webhook", )
     def verify_payment_status(self, request, pk=None):
@@ -90,17 +90,26 @@ class TransactionView(viewsets.ModelViewSet):
     
     @action(detail=True, methods=["POST"], name="chapa_webhook", )
     def release_fund(self, request, pk=None):
-        withdrawal_request = self.get_object()
-        if not validate_withdrawal_request(withdrawal_request):
-            return Response({"message": "Unable to approve request!"}, status=status.HTTP_400_BAD_REQUEST)
+        from backend.utilities import withdrawal_request_approved
+        # if not validate_withdrawal_request(withdrawal_request):
+        #     return Response({"message": "Unable to approve request!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        response = ChapaUtils.transfer(
-            withdrawal_request
-        )
-        if response["status"] == "success":
-            return Response(response, status=status.HTTP_200_OK)
-    
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        # response = ChapaUtils.transfer(
+        #     withdrawal_request
+        # )
+        # if response["status"] == "success":
+            # return Response(response, status=status.HTTP_200_OK)
+        # return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        balance = AccountBalance.objects.get(user=self.get_object().receiver)
+        obj = self.get_object()
+        obj.status = TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED
+        obj.save()
+        try:
+            withdrawal_request_approved(self.get_object().receiver.fb_registration_token, )
+        except:
+            pass
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["POST"], name="request_withdraw", )
     def withdraw(self, request, pk=None):
@@ -109,7 +118,6 @@ class TransactionView(viewsets.ModelViewSet):
             return Response({"message" : "Insufficient balance!"}, status=status.HTTP_400_BAD_REQUEST)
         
         transaction = Transaction.objects.create(
-
             receiver=self.request.user,
             amount=Decimal(self.request.data["amount"]),
             status=TRANSACTION_STATUS.PENDING,

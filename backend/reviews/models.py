@@ -14,4 +14,4 @@ class Review(models.Model):
         return self.by.email
 
     class Meta:
-         ordering = ("-date",)
+         ordering = ("-date","-rating")

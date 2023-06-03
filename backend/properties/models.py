@@ -27,7 +27,7 @@ class Property(models.Model):
     
     is_approved = models.BooleanField(default=False)
     # FIXME: If you have time rename this field to price
-    amount = models.DecimalField(max_digits=6, decimal_places=2)
+    amount = models.DecimalField(max_digits=30, decimal_places=15)
     start_date = models.DateField(default="2020-12-26")
 
     class Meta:
@@ -41,7 +41,7 @@ class PropertyImage(models.Model):
 class PropertyFacility(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="facilities")
     facility = models.ForeignKey(Facility, on_delete=models.CASCADE, related_name="properties")
-    count = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    count = models.DecimalField(max_digits=30, decimal_places=15, default=0)
 
     def __str__(self):
         return f"{self.property.name} - {self.facility.name}"

@@ -1,8 +1,11 @@
-def test_scheduler():
-    f = open("demofile2.txt", "a")
-    f.write("Now the file has more content!")
-    f.close()
+from django_cron import CronJobBase, Schedule
 
-    #open and read the file after the appending:
-    f = open("demofile2.txt", "r")
-    print(f.read())
+class MyCronJob(CronJobBase):
+    RUN_EVERY_MINS = 1 # every 2 hours
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
+    code = 'backend.cron.MyCronJob'    # a unique code
+
+    def do(self):
+        pass    # do your thing here
+        print("running ")

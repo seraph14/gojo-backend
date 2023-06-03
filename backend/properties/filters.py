@@ -3,25 +3,7 @@ from transactions.models import Transaction
 from django.db.models import Q
 from properties.models import Property
 from transactions.models import UserRentedProperties
-
-# class PropertyFilter(filters.FilterSet):
-#     status = filters.ChoiceFilter(
-#         choices=[(choice[1], choice[0]) for choice in TRANSACTION_STATUS.choices],
-#         method="filter_status",
-#     )
-
-#     def filter_status(self, queryset, name, value):
-#         valid_choices = {
-#             choice[1].lower(): choice[0] for choice in TRANSACTION_STATUS.choices
-#         }
-#         status_value = valid_choices.get(value.lower(), None)
-#         if status_value is not None:
-#             return queryset.filter(status=status_value)
-#         return queryset.none()
-
-#     class Meta:
-#         model = Transaction
-#         fields = ["status"]
+from django.db.models import Avg
 
 
 class PropertyFilter(filters.FilterSet):
@@ -42,10 +24,13 @@ class PropertyFilter(filters.FilterSet):
 
     def filter_by_rating(self, queryset, name, value):
         rating = float(value)
+        # TODO: average rating
         properties = (
-            Property.objects.annotate(avg_rating=Avg("reviews__rating"))
-            .filter(avg_rating__gte=rating)
-            .order_by("avg_rating")
+            queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
+                avg_rating__gte=rating
+            )
+            # queryset.exclude(reviews__rating__lte=rating)
+            # .distinct("id")
         )
         return properties
 

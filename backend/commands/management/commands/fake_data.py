@@ -26,7 +26,6 @@ class Command(BaseCommand):
             is_verified=True
         )
         
-        # self.tenant = User.objects.get(phone="0949024607")
         self.landlord = User.objects.create_user(
             email="test@landlord.com",
             password="123",
@@ -184,7 +183,7 @@ class Command(BaseCommand):
                 }
             ],
             title="Test Title",
-            amount=8000,
+            amount=4000,
             category=self.condo,
             is_approved=True,
             description="Lorem ipsum lorem ipsum"
@@ -244,7 +243,7 @@ class Command(BaseCommand):
                 }
             ],
             title="Test Title 2",
-            amount=8000,
+            amount=1000,
             category=self.studio,
             is_approved=True,
             description="Lorem ipsum lorem ipsum"
@@ -301,7 +300,7 @@ class Command(BaseCommand):
                 }
             ],
             title="Test Title 3",
-            amount=8000,
+            amount=800,
             category=self.studio,
             is_approved=True,
             description="Lorem ipsum lorem ipsum"
@@ -358,7 +357,7 @@ class Command(BaseCommand):
                 }
             ],
             title="Test Title 4",
-            amount=8000,
+            amount=9000,
             category=self.studio,
             is_approved=True,
             description="Lorem ipsum lorem ipsum"
@@ -439,27 +438,6 @@ class Command(BaseCommand):
         print("============ image upload 4 ==============")
 
 
-        self.property_5 = Property.objects.create(
-            owner=self.landlord,
-            visiting_hours=[
-                {
-                    "day": "Monday",
-                    "from": "9:00 AM",
-                    "to": "11:00 AM"
-                },
-                {
-                    "day": "Tuesday",
-                    "from": "11:00 AM",
-                    "to": "1:00 PM"
-                }
-            ],
-            title="Test Title 5",
-            amount=8000,
-            category=self.studio,
-            is_approved=False,
-            description="Lorem ipsum lorem ipsum"
-        )
-
     def seed_applications(self):
         from applications.models import Application
         from applications.utilities import APPLICATION_STATUS
@@ -493,7 +471,7 @@ class Command(BaseCommand):
 
         self.application_rejected = Application.objects.create(
             tenant=self.tenant,
-            status=APPLICATION_STATUS.REJECTED,
+            status=APPLICATION_STATUS.PENDING,
             property=self.property_4,
             possible_start_date="2023-07-25",
             how_long=5,
@@ -542,9 +520,6 @@ class Command(BaseCommand):
         faker = Faker()
         uuid_4 = uuid.uuid4()
         uuid_4_2 = uuid.uuid4()
-
-        print("====================== ", uuid_4)
-        print("====================== ", uuid_4_2)
 
         self.virtual_tour = VirtualTour.objects.create(
             property=self.property_1,
@@ -629,6 +604,20 @@ class Command(BaseCommand):
             user=self.tenant,
             comment="Te rating data is being fetched",
             rating=5
+        )
+
+        self.review_2 = Review.objects.create(
+            property=self.property_2,
+            user=self.tenant,
+            comment="Te rating data is being fetched",
+            rating=3
+        )
+
+        self.review_3 = Review.objects.create(
+            property=self.property_3,
+            user=self.tenant,
+            comment="Te rating data is being fetched",
+            rating=4
         )
 
     def seed_landlord_transactions(self):

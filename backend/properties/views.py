@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.models import AnonymousUser
 from properties.serializers import (
     PropertyCreateSerializer,
@@ -38,6 +39,8 @@ from users.serializers import BasicUserSerializer
 from reviews.serializers import ReviewSerializer
 from reviews.models import Review
 from properties.filters import PropertyFilter
+from transactions.models import PROPERTY_RENT_STATUS
+
 
 class CategoryView(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -56,8 +59,10 @@ class FacilityView(viewsets.ModelViewSet):
 class PropertyView(viewsets.ModelViewSet):
     queryset = Property.objects.all().prefetch_related("images")
     lookup_field = "pk"
-    filter_backends = [ PropertyFilter ]
 
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PropertyFilter
+    
     def get_permissions(self):
         if self.action == "list" or self.action == "retrieve":
             return [AllowAny()]
@@ -82,43 +87,40 @@ class PropertyView(viewsets.ModelViewSet):
         property_serializer = PropertySerializer(instance)
         self.request._property_data = property_serializer.data
 
+    def get_queryset(self):
+        queryset = Property.objects.all()
+        if (
+            not self.request.user.is_authenticated
+        ):
+            queryset = Property.objects.exclude(
+                is_approved=False, rent_histories__status=PROPERTY_RENT_STATUS.ONGOING
+            )
+        return queryset
+
     def list(self, request):
         t = request.query_params.get("type", None)
-        if self.request.users.is_authenticated:
+        if (
+            self.request.user.is_authenticated
+            and self.request.user.role == UserTypes.LANDLORD
+        ):
+            data = self.get_queryset()
             if t == "rented":
-                rented_properties = UserRentedProperties.objects.filter(
-                    status=PROPERTY_RENT_STATUS.ONGOING,
-                    property__owner=self.request.user,
-                ).values("property")
-
-                property_ids = [
-                    rented_property["property"] for rented_property in rented_properties
-                ]
-
-                data = Property.objects.filter(id__in=property_ids)
-            elif t == "posted":
                 data = Property.objects.filter(
-                    owner=self.request.user, is_approved=True
+                    rent_histories__status=PROPERTY_RENT_STATUS.ONGOING
+                ).distinct("id")
+            elif t == "posted":
+                data = (
+                    Property.objects.filter(owner=self.request.user, is_approved=True)
+                    .exclude(rent_histories__status=PROPERTY_RENT_STATUS.ONGOING)
+                    .distinct("id")
                 )
             elif t == "in_review":
                 data = Property.objects.filter(
                     owner=self.request.user, is_approved=False
                 )
-            else:
-                if self.request.user.role == UserTypes.LANDLORD:
-                    return Response(
-                        PropertySerializerForProfile(
-                            Property.objects.filter(
-                                is_approved=True, owner=self.request.user
-                            ),
-                            many=True,
-                        ).data
-                    )
             return Response(
                 {"results": PropertySerializerForProfile(data, many=True).data}
             )
-        else:
-            self.queryset = Property.objects.filter(is_approved=True)
         return super().list(request)
 
     def create(self, request, *args, **kwargs):

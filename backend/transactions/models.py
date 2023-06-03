@@ -11,9 +11,9 @@ class PROPERTY_RENT_STATUS(models.IntegerChoices):
 
 # FIXME: move this to a different file
 class UserRentedProperties(models.Model):
-    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="property_renter")
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="rent_histories")
     start_date = models.DateField()
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_rented_properties")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_rented_properties")
     status = models.IntegerField(default=PROPERTY_RENT_STATUS.ONGOING, choices=PROPERTY_RENT_STATUS.choices)
 
 class Transaction(models.Model):

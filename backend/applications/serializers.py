@@ -37,3 +37,10 @@ class ApplicationViewSerializer(serializers.ModelSerializer):
         model = Application
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at')
+
+    
+
+class ContractSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contract
+        fields = '__all__'

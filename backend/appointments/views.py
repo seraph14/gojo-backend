@@ -24,7 +24,13 @@ class AppointmentView(viewsets.ModelViewSet):
     #     if self.action == "create":
     #         return [IsAuthenticated(), IsTenant()]
     #     return [IsAuthenticated(), IsLandLordOrTenant()]
-
+    def get_queryset(self):
+        queryset = Appointment.objects.all()
+        property_id = self.request.query_params.get("propertyId", None)
+        if property_id:
+            queryset = queryset.filter(property__id=int(property_id))
+        return queryset
+        
     @action(detail=True, methods=["DELETE"], name="cancel_appointment")
     def cancel(self, request, pk=None):
         obj = self.get_object()
