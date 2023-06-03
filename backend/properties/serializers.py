@@ -123,10 +123,7 @@ class PropertySerializer(serializers.ModelSerializer):
 
 
 class PropertyUpdateAdminSerializer(serializers.ModelSerializer):
-    def update(self, instance, validated_data):
-        
-        # images_data = self.context["request"].data.get('images', [])
-        print("========================  ", len(self.context["request"].data))
+    def update(self, instance, validated_data):        
         data = {
             "property": instance.id
         }
