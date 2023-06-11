@@ -148,10 +148,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CRONJOBS = [
-    ('* * * * *', 'backend.cron.test_scheduler')
 ]
 
-CRONTAB_COMMAND_PREFIX="python manage.py"
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 

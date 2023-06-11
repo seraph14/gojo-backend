@@ -68,3 +68,13 @@ def application_approved(r_token, user=None):
         Message(notification=Notification(title="New Message", body=f"You have a new unread message")), additional_registration_ids=[r_token]
     )
     return data
+
+
+def appointment_date_arrived(r_token, user=None):
+    if r_token.lower() == "__empty__":
+        return
+    data, _ = FCMDevice.objects.get_or_create(registration_id=r_token, type="android")
+    data = data.send_message(
+        Message(notification=Notification(title="Appointment", body=f"Don't forget your appointment today!")), additional_registration_ids=[r_token]
+    )
+    return data

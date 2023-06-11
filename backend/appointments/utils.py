@@ -6,3 +6,4 @@ class APPOINTMENT_STATUS(models.IntegerChoices):
     # FIXME: rejected and cancelled [re think it if a landlord can cancel the appointment after approving it]
     REJECTED = 2, "rejected"
     CANCELED = 3, "canceled"
+    PASSED = 4, "passed"
