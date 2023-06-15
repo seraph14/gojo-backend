@@ -14,6 +14,7 @@ from properties.models import Property
 from transactions.models import UserRentedProperties
 from appointments.models import Appointment
 from backend.utilities import application_approved
+
 class ApplicationView(viewsets.ModelViewSet):
     queryset =  Application.objects.all()
     lookup_field = "pk"
@@ -81,20 +82,31 @@ class ApplicationView(viewsets.ModelViewSet):
         application.status = APPLICATION_STATUS.APPROVED
         application.save()
         tenant = application.tenant
-        UserRentedProperties.objects.create(
+        r = UserRentedProperties.objects.create(
             property=application.property,
             user=application.tenant,
             start_date=application.possible_start_date,
         )
         self.request.data["start_date"] = application.possible_start_date
         self.request.data["property"] = application.property.pk
+        self.request.data["application"] = application.pk
         self.request.data["user"] = self.request.user.pk
+
+        from transactions.models import Transaction
+        transaction = Transaction.objects.create(
+            sender=tenant,
+            receiver=application.property.owner,
+            amount=application.property.amount,
+            payment_date=application.possible_start_date,
+            rent_detail=r,
+        )
 
         serializer = ContractSerializer(data= self.request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
         try:
-            application_approved(application.tenant)
+            application_approved(application.tenant.fb_registration_token)
         except:
             pass
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)

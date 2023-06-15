@@ -28,15 +28,26 @@ class TransactionView(viewsets.ModelViewSet):
     filterset_class = TransactionFilter
 
     def list(self, request):
-        if self.request.user.role == UserTypes.LANDLORD:
-            data = self.get_queryset().filter(Q(receiver=self.request.user) | Q(sender=self.request.user))
-            return Response({"balance": AccountBalanceSerializer(AccountBalance.objects.get(user=self.request.user)).data, "transactions" : TransactionLandlordSerializer(data, many=True).data})
-        if self.request.user.role == UserTypes.TENANT:
-            data = self.get_queryset().filter(Q(sender=self.request.user))
-            # return Response(TransactionTenantSerializer(data, many=True).data)
+        if self.request.user.is_authenticated:
+            if self.request.user.role == UserTypes.LANDLORD:
+                data = self.get_queryset().filter(Q(receiver=self.request.user) | Q(sender=self.request.user))
+                return Response({"balance": AccountBalanceSerializer(AccountBalance.objects.get(user=self.request.user)).data, "transactions" : TransactionLandlordSerializer(data, many=True).data})
+            if self.request.user.role == UserTypes.TENANT:
+                data = self.get_queryset().filter(Q(sender=self.request.user))
+                # return Response(TransactionTenantSerializer(data, many=True).data)
         
         return super().list(request)
     
+    def get_queryset(self):
+        queryset = Transaction.objects.all().prefetch_related("rent_detail")
+        if self.request.user.is_authenticated:
+            if self.request.user.role in [UserTypes.FINANCIAL_MANAGER, UserTypes.GENERAL_MANAGER,]:
+                queryset = queryset.filter(
+                    type=TRANSACTION_TYPE.WITHDRAWAL
+                )
+
+        return queryset
+
     # def create(self, request):
     #     if self.request.user.role == UserTypes.LANDLORD:
     #         return Response(TransactionSerializer(Transaction.objects.create(
@@ -45,20 +56,6 @@ class TransactionView(viewsets.ModelViewSet):
     #             type=TRANSACTION_TYPE.WITHDRAWAL
     #         )).data, status=status.HTTP_200_OK)
     #     return super().create(request)    
-
-    @action(detail=False, methods=["POST"], name="chapa_webhook", )
-    def verify_payment_status(self, request, pk=None):
-        data = request.data
-
-        transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
-        if data["status"] == "success":
-            transaction.status = TRANSACTION_STATUS.PAID
-            transaction.save()
-            payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)
-        else:
-            print("======================= payment status is not success =======================")
-        return Response(data, status=status.HTTP_200_OK)
-    
 
     @action(detail=True, methods=["GET"], name="chapa_webhook")
     def chapa_checkout_url(self, request, pk=None):
@@ -88,7 +85,7 @@ class TransactionView(viewsets.ModelViewSet):
         
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=True, methods=["POST"], name="chapa_webhook", )
+    @action(detail=True, methods=["POST"], name="release_fund", )
     def release_fund(self, request, pk=None):
         from backend.utilities import withdrawal_request_approved
         # if not validate_withdrawal_request(withdrawal_request):
@@ -101,12 +98,18 @@ class TransactionView(viewsets.ModelViewSet):
             # return Response(response, status=status.HTTP_200_OK)
         # return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        balance = AccountBalance.objects.get(user=self.get_object().receiver)
-        obj = self.get_object()
-        obj.status = TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED
-        obj.save()
+        account_balance = AccountBalance.objects.get(user=self.get_object().receiver)
+        
+        transaction = self.get_object()
+        transaction.status = TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED
+        transaction.save()
+        
+        current_balance = account_balance.amount
+        account_balance.amount = current_balance - transaction.amount
+        account_balance.save()
+
         try:
-            withdrawal_request_approved(self.get_object().receiver.fb_registration_token, )
+            withdrawal_request_approved(self.get_object().receiver.fb_registration_token,)
         except:
             pass
         return Response(status=status.HTTP_200_OK)
@@ -127,3 +130,16 @@ class TransactionView(viewsets.ModelViewSet):
 
         balance.amount -= Decimal(self.request.data["amount"]) 
         return Response(status=status.HTTP_200_OK)
+
+@api_view(["POST"])
+def verify_payment_status(request):
+    data = request.data
+
+    transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
+    if data["status"] == "success":
+        transaction.status = TRANSACTION_STATUS.PAID
+        transaction.save()
+        payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)
+    else:
+        print("======================= payment status is not success =======================")
+    return Response(data, status=status.HTTP_200_OK)

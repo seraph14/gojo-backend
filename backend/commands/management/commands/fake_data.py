@@ -15,86 +15,108 @@ from properties.models import Property, PropertyImage
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        self.tenant = User.objects.create_user(
-            email="test@tenant.com",
-            password="123123",
-            first_name="Surafel",
-            last_name="Kassahun",
-            role=UserTypes.TENANT,
-            is_active=True,
-            phone="0949024607",
-            is_verified=True
-        )
+        # self.tenant = User.objects.create_user(
+        #     email="test@tenant.com",
+        #     password="123123",
+        #     first_name="Surafel",
+        #     last_name="Kassahun",
+        #     role=UserTypes.TENANT,
+        #     is_active=True,
+        #     phone="0949024607",
+        #     is_verified=True
+        # )
         
-        self.landlord = User.objects.create_user(
-            email="test@landlord.com",
-            password="123",
-            first_name="LandlordTesting",
-            last_name="Yes",
-            role=UserTypes.LANDLORD,
-            is_active=True,
-            phone="0918012730",
-            is_verified=True
-        )
+        # self.landlord = User.objects.create_user(
+        #     email="test@landlord.com",
+        #     password="123",
+        #     first_name="LandlordTesting",
+        #     last_name="Yes",
+        #     role=UserTypes.LANDLORD,
+        #     is_active=True,
+        #     phone="0918012730",
+        #     is_verified=True
+        # )
 
-        from users.models import AccountBalance
+        # from users.models import AccountBalance
 
-        AccountBalance.objects.create(user=self.landlord)
+        # AccountBalance.objects.create(user=self.landlord)
 
-        self.landlord_test_kidus = User.objects.create_user(
-            email="test@landlord.com",
-            password="123",
-            first_name="Kidus",
-            last_name="Yoseph",
-            role=UserTypes.LANDLORD,
-            is_active=True,
-            phone="0972476097",
-            is_verified=True
-        )
+        # self.landlord_test_kidus = User.objects.create_user(
+        #     email="test@landlord.com",
+        #     password="123",
+        #     first_name="Kidus",
+        #     last_name="Yoseph",
+        #     role=UserTypes.LANDLORD,
+        #     is_active=True,
+        #     phone="0972476097",
+        #     is_verified=True
+        # )
 
-        AccountBalance.objects.create(user=self.landlord_test_kidus)
+        # AccountBalance.objects.create(user=self.landlord_test_kidus)
         self.landlord_linge = User.objects.create_user(
-            email="test@landlord.com",
+            email="test@listing.com",
             password="123123",
             first_name="Lingerew",
             last_name="Getie",
             role=UserTypes.LISTING_MANAGER,
             is_active=True,
-            phone="0943447499",
+            phone="0943447400",
             is_verified=True
         )
 
-        # self.landlord = User.objects.get(phone='0918012730')
-
-        from chat.models import Message, Thread
-
-        thread = Thread.objects.create(
-            tenant=self.tenant,
-            landlord=self.landlord
+        self.landlord_linge = User.objects.create_user(
+            email="test@financial.com",
+            password="123123",
+            first_name="Lingerew",
+            last_name="Getie",
+            role=UserTypes.FINANCIAL_MANAGER,
+            is_active=True,
+            phone="0943447401",
+            is_verified=True
         )
 
-        chat = Message.objects.create(
-            thread=thread,
-            content="This ia ma message from the landlord!",
-            sender=self.landlord,
-            seen=True,
+        self.landlord_linge = User.objects.create_user(
+            email="test@general.com",
+            password="123123",
+            first_name="Lingerew",
+            last_name="Getie",
+            role=UserTypes.GENERAL_MANAGER,
+            is_active=True,
+            phone="0943447402",
+            is_verified=True
         )
 
-        chat = Message.objects.create(
-            thread=thread,
-            content="This ia a message from the tenant!",
-            sender=self.tenant,
-            seen=True,
-        )
+        # # self.landlord = User.objects.get(phone='0918012730')
+
+        # from chat.models import Message, Thread
+
+        # thread = Thread.objects.create(
+        #     tenant=self.tenant,
+        #     landlord=self.landlord
+        # )
+
+        # chat = Message.objects.create(
+        #     thread=thread,
+        #     content="This ia ma message from the landlord!",
+        #     sender=self.landlord,
+        #     seen=True,
+        # )
+
+        # chat = Message.objects.create(
+        #     thread=thread,
+        #     content="This ia a message from the tenant!",
+        #     sender=self.tenant,
+        #     seen=True,
+        # )
 
         self.seed_facilities()
-        self.seed_category()
-        self.seed_properties_full()
-        self.seed_applications()
-        self.seed_appointments()
-        self.seed_virtual_tour()
-        self.seed_review()
-        self.seed_landlord_transactions()
+        # self.seed_category()
+        # self.seed_properties_full()
+        # self.seed_applications()
+        # self.seed_appointments()
+        # self.seed_virtual_tour()
+        # self.seed_review()
+        # self.seed_landlord_transactions()
 
      
 

@@ -23,16 +23,16 @@ class PropertyFilter(filters.FilterSet):
         return queryset.filter(facilities__id__in=facilities)
 
     def filter_by_rating(self, queryset, name, value):
-        rating = float(value)
-        # TODO: average rating
-        properties = (
-            queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
-                avg_rating__gte=rating
-            )
-            # queryset.exclude(reviews__rating__lte=rating)
-            # .distinct("id")
-        )
-        return properties
+        # rating = float(value)
+        # # TODO: average rating
+        # properties = (
+        #     queryset.annotate(avg_rating=Avg("reviews__rating")).filter(
+        #         avg_rating__gte=rating
+        #     )
+        #     # queryset.exclude(reviews__rating__lte=rating)
+        #     # .distinct("id")
+        # )
+        return queryset
 
     class Meta:
         model = Property

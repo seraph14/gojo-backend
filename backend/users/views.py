@@ -11,28 +11,13 @@ from users.utilities import UserTypes, send_otp_to_phone, verify_otp
 from users.permissions import *
 from fcm_django.models import FCMDevice
 
-
-# NOTE: when trying to login you need to use this format
-'''
-    {
-        "username" : "nat@a.com", -> email
-        "password": "123123" -> password
-    }
-'''
-
+import logging
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 class UserRetrieveUpdateListView(
     viewsets.ModelViewSet
 ):
-    '''
-    This is how the data should be sent to the server.
-        {
-            "first_name" :"1",
-            "last_name": "last",
-            "email" : "e@e.com".
-            "password": "123123"
-        }
-    '''
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
@@ -42,15 +27,55 @@ class UserRetrieveUpdateListView(
         response = super().create(request, *args,**kwargs)
 
         try:
-            request_id = send_otp_to_phone(request.data["phone"])
-            usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))
-            usr_verification.request_id = request_id
-            usr_verification.save()
+            if not self.request.user.is_authenticated:
+                request_id = send_otp_to_phone(request.data["phone"])
+                usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))
+                usr_verification.request_id = request_id
+                usr_verification.save()
         except Exception as e:
-            print("===================otp sending failed=========================    ", e)
+            logger.info("=================== otp sending failed=========================    ", e)
         return response
 
+    @action(detail=False, methods=["POST"], name="current_user")
+    def landlord(self, request, *args,**kwargs):
+        request.data["role"] = UserTypes.LANDLORD
+        response = super().create(request, *args,**kwargs)
+
+        try:
+            if not self.request.user.is_authenticated:
+                request_id = send_otp_to_phone(request.data["phone"])
+                usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))
+                usr_verification.request_id = request_id
+                usr_verification.save()
+        except Exception as e:
+            logger.info("=================== otp sending failed =========================", e)
+        return response
+
+
+    @action(detail=True, methods=["POST"], name="current_user")
+    def change_password(self, request, *args,**kwargs):
+        user = self.get_object()
+        if not user.check_password(self.request.data["oldPassword"]):
+            return Response({"message": "password mismatch"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(self.request.data["newPassword"])
+        user.save()
+
+        return Response({"message": "successfully changed password"})
+
+    @action(detail=False, methods=["POST"], name="current_user")
+    def forgot_password(self, request, *args,**kwargs):
+        user = User.objects.get(phone=self.request.data["phone_number"])
+ 
+        user.set_password(self.request.data["new_password"])
+        user.save()
+
+        return Response({"message": "successfully changed password"})
+
+
     def get_permissions(self):
+        if self.action == "landlord" or self.action == "forgot_password":
+            return [AllowAny()]
         if self.action == "create" and \
                 int(self.request.data.get("role", UserTypes.TENANT)) in [UserTypes.TENANT, UserTypes.LANDLORD]:
             return [AllowAny(),]
@@ -91,16 +116,16 @@ def verify_otp_view(request):
 
     user = User.objects.get(phone=request.data["phone"])
     user_ver, created = UserVerification.objects.get_or_create(user=user)
-    code = request.data["code"] # code sent from the otp provider!
+    code = request.data["code"]
     try:
-        verify_otp(user_ver.request_id, code) # to verify we need the otp and the request_id [this could be specific to vonage]
+        verify_otp(user_ver.user.phone, code)
         user.is_verified = True 
         user.save()
-        print("============ deleting otp record ===========")
-        user.otp_status.delete()
+        logger.info("============ deleting otp record ===========")
+        user.otp_status.all().delete()
         return Response({"message": "Phone number verified!"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({ "message": "Otp verification failed" }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({ "message": "Otp verification failed",}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -113,13 +138,13 @@ def resend_otp(request):
     try:
         user = User.objects.get(phone=phone)
         if user.is_verified:
-            print("============== delete otp record if any because it is already verified =================")
+            logger.info("============== delete otp record if any because it is already verified =================")
             user.otp_status.delete()
-            return Response({"message" : "User is Already Phone number"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message" : "User is Already verified"}, status=status.HTTP_400_BAD_REQUEST)
         
         request_id = send_otp_to_phone(phone)
     except Exception as e:
-        print("================= resend verification ======= ", e)
+        logger.info("================= resend verification ======= ", e)
         return Response({"message": "Unable to send verification code.", "error": e }, status=status.HTTP_400_BAD_REQUEST)
     
     user_verification, created = UserVerification.objects.get_or_create(user__phone=phone)
@@ -129,12 +154,21 @@ def resend_otp(request):
     return Response({"message": "OTP resent"}, status=status.HTTP_200_OK)
 
 
-class CustomTenantAuthToken(ObtainAuthToken):
+class TenantAuthRoute(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
+
+        user = User.objects.filter(phone=request.data["username"])
+        if user.exists() and user.first().check_password(request.data["password"]) and not user.first().is_active:
+            return Response({"message": "Your account is under verification"}, status=status.HTTP_412_PRECONDITION_FAILED)
+
+
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
 
+        if not user.is_verified:
+            return Response({"message": "Phone number is not verified"}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        
         if user.role != UserTypes.TENANT:
             return Response({"message": "invalid login route"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -147,11 +181,19 @@ class CustomTenantAuthToken(ObtainAuthToken):
         }, status=status.HTTP_200_OK)
 
 
-class CustomLandlordAuthToken(ObtainAuthToken):
+class LandlordAuthRoute(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
+
+        user = User.objects.filter(phone=request.data["username"])
+        if user.exists() and user.first().check_password(request.data["password"]) and not user.first().is_active:
+            return Response({"message": "Your account is under verification"}, status=status.HTTP_412_PRECONDITION_FAILED)
+
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
+        
+        if not user.is_verified:
+            return Response({"message": "Phone number is not verified"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         if user.role != UserTypes.LANDLORD:
             return Response({"message": "invalid login route"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -168,7 +210,7 @@ class CustomLandlordAuthToken(ObtainAuthToken):
             'user': usr_data 
         }, status=status.HTTP_200_OK)
 
-class CustomAdminAuthToken(ObtainAuthToken):
+class AdminAuthRoute(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)

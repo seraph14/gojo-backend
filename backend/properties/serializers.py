@@ -23,7 +23,7 @@ from reviews.models import Review
 from properties.utils import calculate_rating
 from chat.models import Thread
 from chat.serializers import ThreadSerializer
-
+from applications.models import Contract
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,6 +48,13 @@ class PropertyLocationSerializer(serializers.ModelSerializer):
         model = PropertyLocation
         fields = ["street", "longitude", "latitude"]
 
+class PropertyLocationViewSerializer(serializers.ModelSerializer):
+    longitude = serializers.DecimalField(max_digits=30, decimal_places=15, coerce_to_string=False)
+    latitude = serializers.DecimalField(max_digits=30, decimal_places=15, coerce_to_string=False)
+    
+    class Meta:
+        model = PropertyLocation
+        fields = ["street", "longitude", "latitude"]
 
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
@@ -68,7 +75,7 @@ class PropertySerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
-    location = PropertyLocationSerializer()
+    location = PropertyLocationViewSerializer()
     reviews = ReviewSerializer(many=True)
     favorite = serializers.SerializerMethodField()
     messages = serializers.SerializerMethodField()
@@ -84,10 +91,10 @@ class PropertySerializer(serializers.ModelSerializer):
             if thread.exists():
                 serializer = ThreadSerializer(thread.first(), context=self.context)
                 return serializer.data["messages"]
-        return {"messages": []}
+        return []
 
     def get_favorite(self, obj):
-        if type(self.context["request"].user) != AnonymousUser:
+        if (self.context["request"].user.is_authenticated) :
             return Favorites.objects.filter(
                 property=obj, user=self.context["request"].user
             ).exists()
@@ -107,6 +114,9 @@ class PropertySerializer(serializers.ModelSerializer):
         return [image["image"] for image in image_serializer.data]
 
     def get_thumbnail_url(self, obj):
+        if not obj.images.exists():
+            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
         if len(image_data.data) != 0:
             if str(image_data.data["image"]).startswith("http"):
@@ -114,7 +124,6 @@ class PropertySerializer(serializers.ModelSerializer):
             return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(
                 image_data.data["image"]
             )
-        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
 
     class Meta:
         model = Property
@@ -182,16 +191,13 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
                 PropertyFacility.objects.get_or_create(
                     property=property_instance,
                     facility=facility_instance,
-                    count=facility["amount"],  # FIXME:the naming is not consistent
+                    count=facility["amount"],
                 )
             )
 
         address_instance, _ = PropertyLocation.objects.get_or_create(
             property=property_instance, **address
         )
-
-        # for image in images_data:
-        #     image = PropertyImage.objects.create(property=property_instance, image=image)
 
         return property_instance
 
@@ -210,6 +216,9 @@ class BasicPropertySerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
 
     def get_thumbnail_url(self, obj):
+        if not obj.images.exists():
+            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
         if len(image_data.data) != 0:
             if str(image_data.data["image"]).startswith("http"):
@@ -218,14 +227,12 @@ class BasicPropertySerializer(serializers.ModelSerializer):
                 image_data.data["image"]
             )
 
-        return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
-
     def get_category(self, obj):
         return obj.category.name
 
     class Meta:
         model = Property
-        fields = ["id", "title", "category", "amount", "thumbnail_url"]
+        fields = ["id", "title", "category", "amount", "thumbnail_url", "status"]
         read_only_fields = ("id",)
 
 
@@ -234,8 +241,21 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
+    contract_url = serializers.SerializerMethodField()
+
+    def get_contract_url(self, obj):
+        print("========================    ", self.context)
+        contract = Contract.objects.filter(application__property__id=obj.id, application__tenant__id=self.context["request"].user.id).latest()
+        if contract:
+            return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(
+                    contract.contract.url
+                )
+        return None
 
     def get_thumbnail_url(self, obj):
+        if not obj.images.exists():
+            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
 
         if image_data.data.get("image", None) and len(image_data.data) != 0:
@@ -265,6 +285,8 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
             "rating",
             "thumbnail_url",
             "description",
+            "status",
+            "contract_url"
         ]
         read_only_fields = ("id",)
 

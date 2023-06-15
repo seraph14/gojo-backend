@@ -22,6 +22,7 @@ from properties.models import (
     Facility,
     VirtualTour,
     Favorites,
+    PROPERTY_STATUS,
 )
 from transactions.models import UserRentedProperties, PROPERTY_RENT_STATUS
 from appointments.models import Appointment
@@ -62,8 +63,11 @@ class PropertyView(viewsets.ModelViewSet):
 
     filter_backends = [DjangoFilterBackend]
     filterset_class = PropertyFilter
-    
+
     def get_permissions(self):
+        if self.action == "virtual_tour":
+            return [AllowAny()]
+
         if self.action == "list" or self.action == "retrieve":
             return [AllowAny()]
 
@@ -84,16 +88,16 @@ class PropertyView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        property_serializer = PropertySerializer(instance)
-        self.request._property_data = property_serializer.data
 
     def get_queryset(self):
         queryset = Property.objects.all()
-        if (
-            not self.request.user.is_authenticated
+        if not self.request.user.is_authenticated or (
+            self.request.user.is_authenticated
+            and self.request.user.role == UserTypes.TENANT
         ):
             queryset = Property.objects.exclude(
-                is_approved=False, rent_histories__status=PROPERTY_RENT_STATUS.ONGOING
+                status__in=[PROPERTY_STATUS.PENDING, PROPERTY_STATUS.REJECTED],
+                # rent_histories__status=PROPERTY_RENT_STATUS.ONGOING,
             )
         return queryset
 
@@ -110,32 +114,31 @@ class PropertyView(viewsets.ModelViewSet):
                 ).distinct("id")
             elif t == "posted":
                 data = (
-                    Property.objects.filter(owner=self.request.user, is_approved=True)
+                    Property.objects.filter(owner=self.request.user, status=PROPERTY_STATUS.APPROVED)
                     .exclude(rent_histories__status=PROPERTY_RENT_STATUS.ONGOING)
                     .distinct("id")
                 )
             elif t == "in_review":
                 data = Property.objects.filter(
-                    owner=self.request.user, is_approved=False
+                    owner=self.request.user, status=PROPERTY_STATUS.PENDING
                 )
             return Response(
                 {"results": PropertySerializerForProfile(data, many=True).data}
             )
+
         return super().list(request)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        if hasattr(self.request, "_property_data"):
-            data = self.request._property_data
-            del self.request._property_data
-        return Response(data, status=status.HTTP_201_CREATED)
+
+        return Response(status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
             return PropertyCreateSerializer
-            
+
         if self.request.method == "PATCH":
             return PropertyUpdateAdminSerializer
 
@@ -143,6 +146,21 @@ class PropertyView(viewsets.ModelViewSet):
             return PropertySerializerForProfile
 
         return PropertySerializer
+
+    @action(detail=True, methods=["POST"], name="end_contract")
+    def end_contract(self, request, pk=None):
+        from transactions.models import PROPERTY_RENT_STATUS, Transaction
+        from transactions.utils import TRANSACTION_STATUS
+
+        obj = self.get_object()
+        data = obj.rent_histories.latest()
+        data.status = PROPERTY_RENT_STATUS.ENDED
+        data.save()
+        transactions = Transaction.objects.filter(rent_detail=data, status=TRANSACTION_STATUS.PENDING)
+        if transactions.exists():
+            transactions.delete()
+
+        return Response({"message": "Done"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["PATCH"], name="favorite_properties")
     def favorite(self, request, pk=None):
@@ -184,7 +202,7 @@ class PropertyView(viewsets.ModelViewSet):
             data.append(rent.property)
 
         return Response(
-            {"results": self.get_serializer(data, many=True).data},
+            {"results": PropertySerializerForProfile(data,many=True ,context={"request": self.request}).data},
             status=status.HTTP_200_OK,
         )
 

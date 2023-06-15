@@ -31,19 +31,20 @@ class ChatConsumer(AsyncConsumer):
 
     async def websocket_receive(self, event): # websocket.receive
         data =  json.loads(event["text"])
-        message_data ={"message" : (data['content'])}
-        self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
-        self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
-        message_data["sender"] = self.sender_user_id
-        await self.create_chat_message(self.sender_user_id, message_data['message'])
-        final_message_data = json.dumps(message_data)
-        await self.channel_layer.group_send(
-            self.thread_channel+str(self.receiver_user_id),
-            {
-                'type': 'chat_message',
-                'message': final_message_data
-            }
-        )
+        if data.get("content", None) and data["content"] != "":
+            message_data ={"message" : (data['content'])}
+            self.sender_user_id = int(self.scope['url_route']['kwargs']['sender_id'])
+            self.receiver_user_id = int(self.scope['url_route']['kwargs']['receiver_id'])
+            message_data["sender"] = self.sender_user_id
+            await self.create_chat_message(self.sender_user_id, message_data['message'])
+            final_message_data = json.dumps(message_data)
+            await self.channel_layer.group_send(
+                self.thread_channel+str(self.receiver_user_id),
+                {
+                    'type': 'chat_message',
+                    'message': final_message_data
+                }
+            )
 
     async def chat_message(self, event):
         await self.send({

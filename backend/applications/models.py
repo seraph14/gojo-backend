@@ -21,7 +21,9 @@ class Application(models.Model):
         ordering = ["application_date"]
 
 class Contract(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    property = models.ForeignKey(Property, on_delete=models.CASCADE)
+    application = models.ForeignKey(Application, on_delete=models.CASCADE)
     start_date = models.DateField()
     contract = models.FileField(upload_to="contracts/")
+    
+    class Meta:
+        get_latest_by = ['start_date']

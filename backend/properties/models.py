@@ -17,6 +17,12 @@ class Facility(models.Model):
     def __str__(self):
         return self.name
 
+
+class PROPERTY_STATUS(models.IntegerChoices):
+    PENDING = 0, "pending"
+    APPROVED = 1, "approved"
+    REJECTED = 2, "rejected"
+
 class Property(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     visiting_hours = models.JSONField(default=dict)
@@ -26,6 +32,8 @@ class Property(models.Model):
     description = models.TextField(blank=True)
     
     is_approved = models.BooleanField(default=False)
+    status = models.IntegerField(choices=PROPERTY_STATUS.choices, default=PROPERTY_STATUS.PENDING)
+
     # FIXME: If you have time rename this field to price
     amount = models.DecimalField(max_digits=30, decimal_places=15)
     start_date = models.DateField(default="2020-12-26")
