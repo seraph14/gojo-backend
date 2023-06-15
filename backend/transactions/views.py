@@ -192,19 +192,24 @@ class TransactionView(viewsets.ModelViewSet):
         from django.db.models import Sum
 
         released_amount = Transaction.objects.filter(
-            status=TRANSACTION_STATUS.PAID, type=TRANSACTION_TYPE.WITHDRAWAL
+            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED, type=TRANSACTION_TYPE.WITHDRAWAL
         ).aggregate(total=Sum("amount"))["total"]
 
         total_cash_flow = Transaction.objects.filter(
             status=TRANSACTION_STATUS.PAID, type=TRANSACTION_TYPE.RENT_PAYMENT
         ).aggregate(total=Sum("amount"))["total"]
 
+        if total_cash_flow is None:
+            total_cash_flow = 0
+        if released_amount is None:
+            released_amount = 0
+
         current_balance = total_cash_flow - released_amount
 
         return Response(
             {
-                "released_amount": released_amount,
                 "cash_flow": total_cash_flow,
+                "released_amount": released_amount,
                 "current_balance": current_balance,
             },
             status=status.HTTP_200_OK,

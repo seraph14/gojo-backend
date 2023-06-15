@@ -242,6 +242,7 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     facilities = PropertyFacilitySerializer(many=True)
     rating = serializers.SerializerMethodField()
     contract_url = serializers.SerializerMethodField()
+    address = PropertyLocationSerializer(source="location")
 
     def get_contract_url(self, obj):
         print("========================    ", self.context)
@@ -288,7 +289,8 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
             "thumbnail_url",
             "description",
             "status",
-            "contract_url"
+            "contract_url",
+            "address"
         ]
         read_only_fields = ("id",)
 
