@@ -25,6 +25,7 @@ from chat.models import Thread
 from chat.serializers import ThreadSerializer
 from applications.models import Contract
 
+
 class PropertyImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertyImage
@@ -48,19 +49,29 @@ class PropertyLocationSerializer(serializers.ModelSerializer):
         model = PropertyLocation
         fields = ["street", "longitude", "latitude"]
 
+
 class PropertyLocationViewSerializer(serializers.ModelSerializer):
-    longitude = serializers.DecimalField(max_digits=30, decimal_places=15, coerce_to_string=False)
-    latitude = serializers.DecimalField(max_digits=30, decimal_places=15, coerce_to_string=False)
-    
+    longitude = serializers.DecimalField(
+        max_digits=30, decimal_places=15, coerce_to_string=False
+    )
+    latitude = serializers.DecimalField(
+        max_digits=30, decimal_places=15, coerce_to_string=False
+    )
+
     class Meta:
         model = PropertyLocation
         fields = ["street", "longitude", "latitude"]
+
 
 # TODO: For Editing property replace this serializer
 class PropertyFacilitySerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="facility.name")
     amount = serializers.DecimalField(
-        max_digits=30, decimal_places=15, coerce_to_string=False, source="count", allow_null=True
+        max_digits=30,
+        decimal_places=15,
+        coerce_to_string=False,
+        source="count",
+        allow_null=True,
     )
 
     class Meta:
@@ -94,7 +105,7 @@ class PropertySerializer(serializers.ModelSerializer):
         return []
 
     def get_favorite(self, obj):
-        if (self.context["request"].user.is_authenticated) :
+        if self.context["request"].user.is_authenticated:
             return Favorites.objects.filter(
                 property=obj, user=self.context["request"].user
             ).exists()
@@ -132,20 +143,15 @@ class PropertySerializer(serializers.ModelSerializer):
 
 
 class PropertyUpdateAdminSerializer(serializers.ModelSerializer):
-    def update(self, instance, validated_data):        
-        data = {
-            "property": instance.id
-        }
+    def update(self, instance, validated_data):
+        data = {"property": instance.id}
         for key, value in self.context["request"].data.items():
             if key.startswith("image"):
                 data["image"] = self.context["request"].data[key]
-                serializer = PropertyImageSerializer(
-                    data=data, context=self.context
-                )
+                serializer = PropertyImageSerializer(data=data, context=self.context)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-        
         instance = super().update(instance, validated_data)
         return instance
 
@@ -186,7 +192,6 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         facilities = []
         property_facility = self.context["request"].data["facilities"]
         for facility in property_facility:
-
             facility_instance = Facility.objects.get(id=facility["id"])
             if facility["amount"] == None:
                 facilities.append(
@@ -252,21 +257,25 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     contract_url = serializers.SerializerMethodField()
     address = PropertyLocationSerializer(source="location")
+    amount = serializers.DecimalField(max_digits=30, decimal_places=2)
 
     def get_contract_url(self, obj):
-        contract = Contract.objects.filter(application__property__id=obj.id, application__tenant__id=self.context["request"].user.id)
+        contract = Contract.objects.filter(
+            application__property__id=obj.id,
+            application__tenant__id=self.context["request"].user.id,
+        )
         if contract.exists():
             contract = contract.latest()
             if contract:
                 return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(
-                        contract.contract.url
-                    )
+                    contract.contract.url
+                )
         return None
 
     def get_thumbnail_url(self, obj):
         if not obj.images.exists():
             return "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
-        
+
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
 
         if image_data.data.get("image", None) and len(image_data.data) != 0:
@@ -298,7 +307,7 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
             "description",
             "status",
             "contract_url",
-            "address"
+            "address",
         ]
         read_only_fields = ("id",)
 
@@ -438,4 +447,71 @@ class VirtualTourSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VirtualTour
+        fields = "__all__"
+
+
+class PropertyUpdateSerializer(serializers.ModelSerializer):
+    facilities = PropertyFacilitySerializer(many=True)
+    category = CategorySerializer()
+    address = PropertyLocationSerializer(source="location")
+
+    def update(self, instance, validated_data):
+        owner = self.context["request"].user
+
+        validated_data.pop("facilities")
+        validated_data.pop("category")
+        validated_data.pop("location")
+
+        address = self.context["request"].data["address"]
+
+        category_data = self.context["request"].data["category"]
+
+        category_instance = Category.objects.get(id=category_data["id"])
+
+        property_instance = Property.objects.get(id=self.context["request"].data["id"])
+        property_instance.title = validated_data["title"]
+        property_instance.category = category_instance
+        property_instance.description = validated_data["description"]
+        property_instance.amount = validated_data["amount"]
+        property_instance.save()
+        # property_instance, created = Property.objects.update_or_create(
+        #     owner=owner,
+        #     category=category_instance,
+        #     **validated_data,
+        #     defaults={"id": int(self.context["request"].data["id"])}
+        # )
+
+        facilities = []
+        property_facility = self.context["request"].data["facilities"]
+        for facility in property_facility:
+            facility_instance = Facility.objects.get(id=facility["id"])
+            if facility["amount"] == None:
+                d = PropertyFacility.objects.get(
+                    property=property_instance, facility=facility_instance
+                )
+                d.amount = 0
+                d.save()
+            else:
+                d = PropertyFacility.objects.get(
+                    property=property_instance, facility=facility_instance
+                )
+                if facility["name"]  != "Square area": 
+                    d.amount = int(facility["amount"])
+                else:
+                    d.amount = facility["amount"]
+                d.save()
+
+        location= PropertyLocation.objects.get(
+            property=property_instance
+        )
+
+        location.street = address["street"]
+        location.latitude = address["latitude"]
+        location.longitude = address["longitude"]
+        location.save()
+
+        return property_instance
+
+    class Meta:
+        model = Property
         fields = "__all__"

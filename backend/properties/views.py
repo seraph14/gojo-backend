@@ -122,7 +122,7 @@ class PropertyView(viewsets.ModelViewSet):
                 )
             elif t == "in_review":
                 data = Property.objects.filter(
-                    owner=self.request.user, status=PROPERTY_STATUS.PENDING
+                    owner=self.request.user, status=PROPERTY_STATUS.PENDING, id=29
                 )
             return Response(
                 {
@@ -169,6 +169,16 @@ class PropertyView(viewsets.ModelViewSet):
             transactions.delete()
 
         return Response({"message": "Done"}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=["POST"], name="update_property")
+    def updateProperty(self, request, pk=None):
+        from properties.serializers import PropertyUpdateSerializer
+        previous = Property.objects.get(id=int(pk))
+        srlzr = PropertyUpdateSerializer(previous, data=request.data, context={"request": self.request}, partial=True)
+        srlzr.is_valid(raise_exception=True)
+        srlzr.save()
+        return Response({ "message" : "Test!" }, status=status.HTTP_200_OK)
+        
 
     @action(detail=False, methods=["GET"], name="property_report")
     def report(self, request, pk=None):
@@ -213,7 +223,7 @@ class PropertyView(viewsets.ModelViewSet):
         for property in favorites:
             properties.append(property.property)
         return Response(
-            {"results": PropertySerializerForProfile(properties, many=True).data}
+            {"results": PropertySerializerForProfile(properties, many=True, context= {"request" : self.request}).data}
         )
 
     @action(detail=False, methods=["GET"], name="rented_properties")
@@ -237,7 +247,7 @@ class PropertyView(viewsets.ModelViewSet):
     @action(detail=True, methods=["GET", "POST"], name="virtual_tour")
     def virtual_tour(self, request, pk=None):
         if self.request.method == "GET":
-            virtual_tour = VirtualTour.objects.filter(property=self.get_object())
+            virtual_tour = VirtualTour.objects.filter(property__id=int(pk))
             if not virtual_tour.exists():
                 return Response(
                     {"message": "virtual tour does not exist!"},
