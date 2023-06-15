@@ -115,7 +115,7 @@ class PropertySerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         if not obj.images.exists():
-            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+            return "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
 
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
         if len(image_data.data) != 0:
@@ -217,7 +217,7 @@ class BasicPropertySerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         if not obj.images.exists():
-            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
+            return "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
 
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
         if len(image_data.data) != 0:
@@ -245,17 +245,19 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
 
     def get_contract_url(self, obj):
         print("========================    ", self.context)
-        contract = Contract.objects.filter(application__property__id=obj.id, application__tenant__id=self.context["request"].user.id).latest()
-        if contract:
-            return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(
-                    contract.contract.url
-                )
+        contract = Contract.objects.filter(application__property__id=obj.id, application__tenant__id=self.context["request"].user.id)
+        if contract.exists():
+            contract = contract.latest()
+            if contract:
+                return str(os.environ.get("DOMAIN", "http://localhost:8000")) + str(
+                        contract.contract.url
+                    )
         return None
 
     def get_thumbnail_url(self, obj):
         if not obj.images.exists():
-            return "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTooc7RcJtAj9LLZyHrnxkx_jlzFmT12YAy6bLt3eYRLnoYXV_cqSBg1SUcPDRq8fHzXKI&usqp=CAU"
-
+            return "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
+        
         image_data = PropertyImageSerializer(obj.images.first(), context=self.context)
 
         if image_data.data.get("image", None) and len(image_data.data) != 0:

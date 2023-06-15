@@ -123,7 +123,7 @@ class PropertyView(viewsets.ModelViewSet):
                     owner=self.request.user, status=PROPERTY_STATUS.PENDING
                 )
             return Response(
-                {"results": PropertySerializerForProfile(data, many=True).data}
+                {"results": PropertySerializerForProfile(data, many=True, context={"request": self.request}).data}
             )
 
         return super().list(request)

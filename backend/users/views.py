@@ -51,6 +51,13 @@ class UserRetrieveUpdateListView(
             logger.info("=================== otp sending failed =========================", e)
         return response
 
+    @action(detail=False, methods=["GET"], name="report")
+    def report(self, request, *args,**kwargs):
+        in_active = User.objects.filter(is_active=False, role__in=[UserTypes.TENANT, UserTypes.LANDLORD]).count()
+        tenant = User.objects.filter(is_active=True, role__in=[UserTypes.TENANT]).count()
+        landlord = User.objects.filter(is_active=True, role__in=[UserTypes.LANDLORD]).count()
+
+        return Response({"in_active": in_active, "landlord": landlord, "tenant": tenant}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["POST"], name="current_user")
     def change_password(self, request, *args,**kwargs):
@@ -136,20 +143,10 @@ def resend_otp(request):
     phone = request.data["phone"]
     
     try:
-        user = User.objects.get(phone=phone)
-        if user.is_verified:
-            logger.info("============== delete otp record if any because it is already verified =================")
-            user.otp_status.delete()
-            return Response({"message" : "User is Already verified"}, status=status.HTTP_400_BAD_REQUEST)
-        
         request_id = send_otp_to_phone(phone)
     except Exception as e:
         logger.info("================= resend verification ======= ", e)
-        return Response({"message": "Unable to send verification code.", "error": e }, status=status.HTTP_400_BAD_REQUEST)
-    
-    user_verification, created = UserVerification.objects.get_or_create(user__phone=phone)
-    user_verification.request_id = request_id
-    user_verification.save()
+        return Response({"message": "Unable to send verification code." }, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"message": "OTP resent"}, status=status.HTTP_200_OK)
 
