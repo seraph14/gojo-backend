@@ -12,8 +12,8 @@ def create_virtual_tour_object(data, imgs, property):
     default_view_position = (data["defaultViewPosition"])
     virtual_tour = VirtualTour.objects.filter(property=property)
     if virtual_tour.exists():
-        virtual_tour = tour.first()
-        virtual_tour.hotspotNodes.delete()
+        virtual_tour = virtual_tour.first()
+        virtual_tour.hotspotNodes.all().delete()
     else:
         virtual_tour = VirtualTour.objects.create(
             property=property,

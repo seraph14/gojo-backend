@@ -32,3 +32,4 @@ fcm-django==1.0.14
 twilio==8.2.1
 vonage==3.5.1
 Faker==0.7.4
+dj-database-url==2.0.0

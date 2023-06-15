@@ -60,7 +60,7 @@ class PropertyLocationViewSerializer(serializers.ModelSerializer):
 class PropertyFacilitySerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="facility.name")
     amount = serializers.DecimalField(
-        max_digits=30, decimal_places=15, coerce_to_string=False, source="count"
+        max_digits=30, decimal_places=15, coerce_to_string=False, source="count", allow_null=True
     )
 
     class Meta:
@@ -186,15 +186,24 @@ class PropertyCreateSerializer(serializers.ModelSerializer):
         facilities = []
         property_facility = self.context["request"].data["facilities"]
         for facility in property_facility:
-            facility_instance = Facility.objects.get(id=facility["id"])
-            facilities.append(
-                PropertyFacility.objects.get_or_create(
-                    property=property_instance,
-                    facility=facility_instance,
-                    count=facility["amount"],
-                )
-            )
 
+            facility_instance = Facility.objects.get(id=facility["id"])
+            if facility["amount"] == None:
+                facilities.append(
+                    PropertyFacility.objects.get_or_create(
+                        property=property_instance,
+                        facility=facility_instance,
+                        count=0,
+                    )
+                )
+            else:
+                facilities.append(
+                    PropertyFacility.objects.get_or_create(
+                        property=property_instance,
+                        facility=facility_instance,
+                        count=facility["amount"],
+                    )
+                )
         address_instance, _ = PropertyLocation.objects.get_or_create(
             property=property_instance, **address
         )
@@ -245,7 +254,6 @@ class PropertySerializerForProfile(serializers.ModelSerializer):
     address = PropertyLocationSerializer(source="location")
 
     def get_contract_url(self, obj):
-        print("========================    ", self.context)
         contract = Contract.objects.filter(application__property__id=obj.id, application__tenant__id=self.context["request"].user.id)
         if contract.exists():
             contract = contract.latest()
