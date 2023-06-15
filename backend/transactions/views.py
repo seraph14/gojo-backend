@@ -192,7 +192,8 @@ class TransactionView(viewsets.ModelViewSet):
         from django.db.models import Sum
 
         released_amount = Transaction.objects.filter(
-            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED, type=TRANSACTION_TYPE.WITHDRAWAL
+            status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED,
+            type=TRANSACTION_TYPE.WITHDRAWAL,
         ).aggregate(total=Sum("amount"))["total"]
 
         total_cash_flow = Transaction.objects.filter(
@@ -205,12 +206,26 @@ class TransactionView(viewsets.ModelViewSet):
             released_amount = 0
 
         current_balance = total_cash_flow - released_amount
+        approved = Transaction.objects.filter(
+                    status=TRANSACTION_STATUS.WITHDRAWAL_REQUEST_APPROVED,
+                    type=TRANSACTION_TYPE.WITHDRAWAL,
+                ).aggregate(total=Sum("amount"))["total"]
+        if approved is None:
+            approved = 0
 
+        pending = Transaction.objects.filter(
+                    status=TRANSACTION_STATUS.PENDING,
+                    type=TRANSACTION_TYPE.WITHDRAWAL,
+                ).aggregate(total=Sum("amount"))["total"]
+        if pending is None:
+            pending = 0
         return Response(
             {
                 "cash_flow": total_cash_flow,
                 "released_amount": released_amount,
                 "current_balance": current_balance,
+                "approved": approved,
+                "pending": pending,
             },
             status=status.HTTP_200_OK,
         )

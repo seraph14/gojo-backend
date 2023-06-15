@@ -114,7 +114,9 @@ class PropertyView(viewsets.ModelViewSet):
                 ).distinct("id")
             elif t == "posted":
                 data = (
-                    Property.objects.filter(owner=self.request.user, status=PROPERTY_STATUS.APPROVED)
+                    Property.objects.filter(
+                        owner=self.request.user, status=PROPERTY_STATUS.APPROVED
+                    )
                     .exclude(rent_histories__status=PROPERTY_RENT_STATUS.ONGOING)
                     .distinct("id")
                 )
@@ -123,7 +125,11 @@ class PropertyView(viewsets.ModelViewSet):
                     owner=self.request.user, status=PROPERTY_STATUS.PENDING
                 )
             return Response(
-                {"results": PropertySerializerForProfile(data, many=True, context={"request": self.request}).data}
+                {
+                    "results": PropertySerializerForProfile(
+                        data, many=True, context={"request": self.request}
+                    ).data
+                }
             )
 
         return super().list(request)
@@ -156,11 +162,29 @@ class PropertyView(viewsets.ModelViewSet):
         data = obj.rent_histories.latest()
         data.status = PROPERTY_RENT_STATUS.ENDED
         data.save()
-        transactions = Transaction.objects.filter(rent_detail=data, status=TRANSACTION_STATUS.PENDING)
+        transactions = Transaction.objects.filter(
+            rent_detail=data, status=TRANSACTION_STATUS.PENDING
+        )
         if transactions.exists():
             transactions.delete()
 
         return Response({"message": "Done"}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["GET"], name="property_report")
+    def report(self, request, pk=None):
+        from properties.models import PROPERTY_STATUS
+
+        approved = Property.objects.filter(status=PROPERTY_STATUS.APPROVED).count()
+        pending = Property.objects.filter(status=PROPERTY_STATUS.PENDING).count()
+        rejected = Property.objects.filter(status=PROPERTY_STATUS.REJECTED).count()
+        return Response(
+            {
+                "approved": approved,
+                "pending": pending,
+                "rejected": rejected,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=["PATCH"], name="favorite_properties")
     def favorite(self, request, pk=None):
@@ -202,7 +226,11 @@ class PropertyView(viewsets.ModelViewSet):
             data.append(rent.property)
 
         return Response(
-            {"results": PropertySerializerForProfile(data,many=True ,context={"request": self.request}).data},
+            {
+                "results": PropertySerializerForProfile(
+                    data, many=True, context={"request": self.request}
+                ).data
+            },
             status=status.HTTP_200_OK,
         )
 
