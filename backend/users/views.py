@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action, api_view, permission_classes
 from users.models import User, UserVerification, AccountBalance
 from users.serializers import UserSerializer
-from users.utilities import UserTypes, send_otp_to_phone, verify_otp
+from users.utilities import UserTypes, send_otp_to_phone, verify_otp, send_sms_message
 from users.permissions import *
 from fcm_django.models import FCMDevice
 
@@ -24,14 +24,26 @@ class UserRetrieveUpdateListView(
     lookup_field = 'pk'
 
     def create(self, request, *args,**kwargs):
+        previous = User.objects.filter(phone=self.request.data["phone"])
+        if previous.exists():
+            current = previous.first()
+            if current.is_active:
+                return Response({"message": "Phone number already in use."},status=status.HTTP_400_BAD_REQUEST)
+            current.delete()
+
         response = super().create(request, *args,**kwargs)
 
         try:
+            u = User.objects.get(id=response.data["id"])
             if not self.request.user.is_authenticated:
                 request_id = send_otp_to_phone(request.data["phone"])
-                usr_verification, created = UserVerification.objects.get_or_create(user=User.objects.get(id=response.data["id"]))
+                usr_verification, created = UserVerification.objects.get_or_create(user=u)
                 usr_verification.request_id = request_id
                 usr_verification.save()
+            else:
+                if u.role in [UserTypes.FINANCIAL_MANAGER, UserTypes.LISTING_MANAGER, UserTypes.GENERAL_MANAGER]:
+                    send_sms_message(u, self.request.data["password"])
+
         except Exception as e:
             logger.info("=================== otp sending failed=========================    ", e)
         return response

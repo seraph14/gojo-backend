@@ -74,19 +74,12 @@ class UserViewsTest(APITestCase):
         response = self.client.get(f"/api/v1/properties/{self.property.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_all_users(self):
-        response = self.client.get("/api/v1/properties/")
+
+    def test_get_property_transactions(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token_landlord.key)
+        from users.models import AccountBalance
+
+        AccountBalance.objects.create(user=self.land_lord)
+
+        response = self.client.get(f"/api/v1/transactions/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_should_update_property_detail(self):
-        id = self.property.id
-        self.client.credentials(
-            HTTP_AUTHORIZATION="Token " + self.token_listing_manager.key
-        )
-
-        response = self.client.get(
-            f"/api/v1/properties/{id}/",
-            format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-

@@ -56,8 +56,8 @@ class Command(BaseCommand):
         self.landlord_linge = User.objects.create_user(
             email="test@listing.com",
             password="123123",
-            first_name="Lingerew",
-            last_name="Getie",
+            first_name="Abebe",
+            last_name="Alemu",
             role=UserTypes.LISTING_MANAGER,
             is_active=True,
             phone="0943447400",
@@ -67,8 +67,8 @@ class Command(BaseCommand):
         self.landlord_linge = User.objects.create_user(
             email="test@financial.com",
             password="123123",
-            first_name="Lingerew",
-            last_name="Getie",
+            first_name="Abdi",
+            last_name="Natneam",
             role=UserTypes.FINANCIAL_MANAGER,
             is_active=True,
             phone="0943447401",
@@ -110,7 +110,7 @@ class Command(BaseCommand):
         # )
 
         self.seed_facilities()
-        # self.seed_category()
+        self.seed_category()
         # self.seed_properties_full()
         # self.seed_applications()
         # self.seed_appointments()

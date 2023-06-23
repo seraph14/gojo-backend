@@ -122,7 +122,7 @@ class PropertyView(viewsets.ModelViewSet):
                 )
             elif t == "in_review":
                 data = Property.objects.filter(
-                    owner=self.request.user, status=PROPERTY_STATUS.PENDING, id=29
+                    owner=self.request.user, status=PROPERTY_STATUS.PENDING,
                 )
             return Response(
                 {
@@ -159,7 +159,7 @@ class PropertyView(viewsets.ModelViewSet):
         from transactions.utils import TRANSACTION_STATUS
 
         obj = self.get_object()
-        data = obj.rent_histories.latest()
+        data = obj.rent_histories.filter(status=PROPERTY_RENT_STATUS.ONGOING).first()
         data.status = PROPERTY_RENT_STATUS.ENDED
         data.save()
         transactions = Transaction.objects.filter(
@@ -232,7 +232,7 @@ class PropertyView(viewsets.ModelViewSet):
 
         data = []
 
-        for rent in UserRentedProperties.objects.filter(user=self.request.user):
+        for rent in UserRentedProperties.objects.filter(user=self.request.user, status=PROPERTY_RENT_STATUS.ONGOING):
             data.append(rent.property)
 
         return Response(

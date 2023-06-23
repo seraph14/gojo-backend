@@ -42,6 +42,7 @@ def withdrawal_request_approved(r_token, user=None):
     )
     return data
 
+
 def withdrawal_request_denied(r_token, user=None):
     if r_token.lower() == "__empty__":
         return

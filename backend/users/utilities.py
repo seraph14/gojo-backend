@@ -50,3 +50,13 @@ def verify_otp(phone, code):
     except TwilioRestException as e:
         raise Exception("Something went wrong")
     return result.status == 'approved'
+
+
+def send_sms_message(user, password):
+    print("sending================")
+    client.messages \
+                .create(
+                     body=f"Welcome to GOJO, {user.first_name}. \n This is your new temporary pin: {password} \n Please change your password right away.",
+                     from_='+13158886153',
+                     to=f'+251{user.phone[1:]}',
+                 )

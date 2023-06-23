@@ -31,8 +31,11 @@ class TransactionTenantSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     
     def get_property_title(self, obj):
-        return "Test Property Title"
-
+        print("====================", obj)
+        if obj.rent_detail is not None:
+            return obj.rent_detail.property.title
+        return ""
+        
     def get_property_image(self, obj):
         # image_data = PropertyImageSerializer(obj.images.first(),context=self.context)
         # if len(image_data.data) != 0:

@@ -153,10 +153,12 @@ class TransactionView(viewsets.ModelViewSet):
         account_balance.save()
 
         try:
+            print("self.get_object().receiver ================= ", self.get_object().receiver.fb_registration_token)
             withdrawal_request_approved(
                 self.get_object().receiver.fb_registration_token,
             )
         except:
+            print("notification ========")
             pass
         return Response(status=status.HTTP_200_OK)
 
@@ -235,8 +237,13 @@ class TransactionView(viewsets.ModelViewSet):
 def verify_payment_status(request):
     data = request.data
 
-    transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
+
     if data["status"] == "success":
+        transaction = Transaction.objects.get(tx_ref=(data["tx_ref"]))
+        account_balance = AccountBalance.objects.get(user=transaction.receiver)
+        account_balance.amount += transaction.amount
+        account_balance.save()
+
         transaction.status = TRANSACTION_STATUS.PAID
         transaction.save()
         payment_arrived(transaction.rent_detail.property.owner.fb_registration_token)

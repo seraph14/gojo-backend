@@ -16,7 +16,7 @@ class UserRentedProperties(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_rented_properties")
     status = models.IntegerField(default=PROPERTY_RENT_STATUS.ONGOING, choices=PROPERTY_RENT_STATUS.choices)
     class Meta:
-        get_latest_by = ['id']
+        get_latest_by = ['start_date']
 
 
 class Transaction(models.Model):
